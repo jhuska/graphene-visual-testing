@@ -1,0 +1,31 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.jboss.arquillian.graphene</groupId>
+    <artifactId>graphene-visual-testing</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <properties>
+        <screeshooter.version>2.0.2-SNAPSHOT</screeshooter.version>
+        <reporter.version>1.0.0.Alpha2</reporter.version>
+        <rusheye.version>1.0.0-SNAPSHOT</rusheye.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jboss.arquillian.graphene</groupId>
+            <artifactId>arquillian-browser-screenshooter</artifactId>
+            <version>${screeshooter.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.arquillian.extension</groupId>
+            <artifactId>arquillian-recorder-reporter-impl</artifactId>
+            <version>${reporter.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.rusheye</groupId>
+            <artifactId>rusheye-impl</artifactId>
+            <version>${rusheye.version}</version>
+        </dependency>
+    </dependencies>
+</project>
