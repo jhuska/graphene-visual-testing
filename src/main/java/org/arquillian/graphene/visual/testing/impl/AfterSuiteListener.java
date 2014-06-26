@@ -12,6 +12,8 @@ import org.jboss.arquillian.core.api.Instance;
 import org.jboss.arquillian.core.api.annotation.Inject;
 import org.jboss.arquillian.core.api.annotation.Observes;
 import org.jboss.arquillian.test.spi.event.suite.AfterSuite;
+import org.jboss.rusheye.arquillian.event.ComparisonEvent;
+import org.jboss.rusheye.arquillian.event.CrawlEvent;
 
 public class AfterSuiteListener {
 
@@ -22,15 +24,18 @@ public class AfterSuiteListener {
     private Instance<ReporterConfiguration> reporterConfiguration;
 
     @Inject
-    private Event<MakeScreenshotsComparisonEvent> makeScreenshotsComparisonEvent;
+    private Event<ComparisonEvent> comparisonEvent;
+    
+    @Inject
+    private Event<CrawlEvent> crawlEvent;
 
     public void listenToAfterSuite(@Observes AfterSuite event) {
-        if (visualTestingConfiguration.get().isEnabled()) {
-            if (!visualTestingConfiguration.get().isFirstRun()) {
-                makeScreenshotsComparisonEvent.fire(new MakeScreenshotsComparisonEvent());
-            }
-            copyNewScreenshotsToRepository();
+        if(visualTestingConfiguration.get().isFirstRun()) {
+            crawlEvent.fire(new CrawlEvent());
+        } else {
+            comparisonEvent.fire(new ComparisonEvent());
         }
+//            copyNewScreenshotsToRepository();
     }
 
     private void copyNewScreenshotsToRepository() {
@@ -38,8 +43,8 @@ public class AfterSuiteListener {
 
         File destForNewScreenshots = new File(
                 visualTestingConfiguration.get().getScreenshotsRepository().getAbsolutePath()
-                + System.getProperty("file.separator") + 
-                thisRunScreenshotsTimestamp.toString().replaceAll("\\s", "_"));
+                + System.getProperty("file.separator")
+                + thisRunScreenshotsTimestamp.toString().replaceAll("\\s", "_"));
         destForNewScreenshots.mkdir();
         try {
             FileUtils.copyDirectory(reporterConfiguration.get().getRootDir(), destForNewScreenshots);

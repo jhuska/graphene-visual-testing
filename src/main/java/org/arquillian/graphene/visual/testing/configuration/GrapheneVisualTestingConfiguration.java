@@ -14,8 +14,6 @@ public class GrapheneVisualTestingConfiguration extends Configuration<Screenshoo
     @Inject
     private Instance<ReporterConfiguration> reporterConfiguration;
 
-    private String enabled = "true";
-
     private String lastValidScreenshots = "target";
 
     private String screenshotsRepository = System.getProperty("java.io.tmpdir");
@@ -27,10 +25,6 @@ public class GrapheneVisualTestingConfiguration extends Configuration<Screenshoo
     private String firstRun = "false";
 
     public GrapheneVisualTestingConfiguration() {
-    }
-
-    public boolean isEnabled() {
-        return Boolean.parseBoolean(getProperty("enabled", enabled));
     }
 
     public File getLastValidScreenshots() {
@@ -56,7 +50,6 @@ public class GrapheneVisualTestingConfiguration extends Configuration<Screenshoo
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("%-40s %s\n", "enabled", isEnabled()));
         sb.append(String.format("%-40s %s\n", "lastValidScreenshots", getLastValidScreenshots()));
         sb.append(String.format("%-40s %s\n", "screenshotsRepository", getScreenshotsRepository()));
         sb.append(String.format("%-40s %s\n", "result", getResult()));
@@ -67,16 +60,14 @@ public class GrapheneVisualTestingConfiguration extends Configuration<Screenshoo
 
     @Override
     public void validate() throws RecorderConfigurationException {
-        if (isEnabled()) {
-            
-            checkDirForExistenceAndPermissions(getScreenshotsRepository(), "screenshotsRepository");
-            
-            if (!isFirstRun()) {
-                checkDirForExistenceAndPermissions(getDiffs(), "diffs");
-                
-                if (!getLastValidScreenshots().exists()) {
-                    throw new GrapheneVisualTestingConfigurationException("Directory with last valid screenshots has to exist!");
-                }
+
+        checkDirForExistenceAndPermissions(getScreenshotsRepository(), "screenshotsRepository");
+
+        if (!isFirstRun()) {
+            checkDirForExistenceAndPermissions(getDiffs(), "diffs");
+
+            if (!getLastValidScreenshots().exists()) {
+                throw new GrapheneVisualTestingConfigurationException("Directory with last valid screenshots has to exist!");
             }
         }
     }

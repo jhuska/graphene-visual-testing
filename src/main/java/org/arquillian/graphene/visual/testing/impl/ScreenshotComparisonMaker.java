@@ -9,21 +9,22 @@ import org.arquillian.recorder.reporter.ReporterConfiguration;
 import org.jboss.arquillian.core.api.Instance;
 import org.jboss.arquillian.core.api.annotation.Inject;
 import org.jboss.arquillian.core.api.annotation.Observes;
+import org.jboss.rusheye.arquillian.event.ComparisonEvent;
 import org.xml.sax.SAXException;
 
 public class ScreenshotComparisonMaker {
 
     @Inject
-    private Instance<GrapheneVisualTestingConfiguration> visualTestingConfHolder;
+    private Instance<GrapheneVisualTestingConfiguration> visualTestingConf;
 
     @Inject
-    private Instance<ReporterConfiguration> reporterConfigurationHolder;
+    private Instance<ReporterConfiguration> reporterConf;
 
     private static final String DESCRIPTOR_NAME = "suite.xml";
     private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 
-    public void makeComparison(@Observes MakeScreenshotsComparisonEvent event) {
-        crawlPatternsDirectory(visualTestingConfHolder.get().getLastValidScreenshots());
+    public void makeComparison(@Observes ComparisonEvent event) {
+        crawlPatternsDirectory(visualTestingConf.get().getLastValidScreenshots());
     }
 
     private void crawlPatternsDirectory(File patternsDir) {
@@ -46,22 +47,22 @@ public class ScreenshotComparisonMaker {
     private File getSamplesDirFromActualPatternDir(File actualPatternsDir) {
         //removing the root of the path
         String patternSubFolder = actualPatternsDir.getAbsolutePath()
-                .replace(visualTestingConfHolder.get().getLastValidScreenshots().getAbsolutePath(), "");
+                .replace(visualTestingConf.get().getLastValidScreenshots().getAbsolutePath(), "");
         //removing the actual screnshot file from path
         patternSubFolder = patternSubFolder.substring(0, patternSubFolder.lastIndexOf(FILE_SEPARATOR) + 1);
         //concating the absolute path of samples with relative subfolder of patterns
-        return new File(reporterConfigurationHolder.get().getRootDir().getAbsolutePath().concat(patternSubFolder));
+        return new File(reporterConf.get().getRootDir().getAbsolutePath().concat(patternSubFolder));
     }
 
     private void doComparison(File descriptor, File patterns, File samples) {
-        GrapheneVisualTestingConfiguration visualTestingConf = visualTestingConfHolder.get();
+        GrapheneVisualTestingConfiguration conf = visualTestingConf.get();
         String[] args = { 
                 "parse", 
                 descriptor.getAbsolutePath(), 
-                "-D" ,"result-output-file=" + visualTestingConf.getResult().toString(),
+                "-D" ,"result-output-file=" + conf.getResult().toString(),
                 "-D" ,"samples-directory=" + samples.getAbsolutePath(),
                 "-D", "patterns-directory=" + patterns.getAbsolutePath(),
-                "-D", "file-storage-directory=" + visualTestingConf.getDiffs().getAbsolutePath()
+                "-D", "file-storage-directory=" + conf.getDiffs().getAbsolutePath()
                 };
         try {
             org.jboss.rusheye.Main.main(args);
