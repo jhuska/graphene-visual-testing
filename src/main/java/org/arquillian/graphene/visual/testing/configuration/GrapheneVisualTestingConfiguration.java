@@ -16,14 +16,14 @@ public class GrapheneVisualTestingConfiguration extends Configuration<Screenshoo
 
     private String lastValidScreenshots = "target";
 
-    private String screenshotsRepository = System.getProperty("java.io.tmpdir");
-
     private String result = "target/result.xml";
 
     private String diffs = "target/diffs";
 
     private String firstRun = "false";
-
+    
+    private String deploymentURLRoot = "http://locahost:8080/visual-testing";
+    
     public GrapheneVisualTestingConfiguration() {
     }
 
@@ -39,19 +39,18 @@ public class GrapheneVisualTestingConfiguration extends Configuration<Screenshoo
         return new File(getProperty("diffs", diffs));
     }
 
-    public File getScreenshotsRepository() {
-        return new File(getProperty("screenshotsRepository", screenshotsRepository));
-    }
-
     public boolean isFirstRun() {
         return Boolean.parseBoolean(getProperty("firstRun", firstRun));
+    }
+    
+    public String getDeploymentURLRoot() {
+        return getProperty("deploymentURLRoot", deploymentURLRoot);
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("%-40s %s\n", "lastValidScreenshots", getLastValidScreenshots()));
-        sb.append(String.format("%-40s %s\n", "screenshotsRepository", getScreenshotsRepository()));
         sb.append(String.format("%-40s %s\n", "result", getResult()));
         sb.append(String.format("%-40s %s\n", "diffs", getDiffs()));
         sb.append(String.format("%-40s %s\n", "isFirstRun", isFirstRun()));
@@ -60,15 +59,8 @@ public class GrapheneVisualTestingConfiguration extends Configuration<Screenshoo
 
     @Override
     public void validate() throws RecorderConfigurationException {
-
-        checkDirForExistenceAndPermissions(getScreenshotsRepository(), "screenshotsRepository");
-
         if (!isFirstRun()) {
             checkDirForExistenceAndPermissions(getDiffs(), "diffs");
-
-            if (!getLastValidScreenshots().exists()) {
-                throw new GrapheneVisualTestingConfigurationException("Directory with last valid screenshots has to exist!");
-            }
         }
     }
 
