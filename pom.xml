@@ -1,48 +1,18 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.jboss.arquillian.graphene</groupId>
-    <artifactId>graphene-visual-testing</artifactId>
+
+    <groupId>org.jboss.arquillian.extension</groupId>
+    <artifactId>graphene-visual-testing-parent</artifactId>
+    <packaging>pom</packaging>
     <version>0.0.1-SNAPSHOT</version>
+    <name>Graphene Visual Testing Parent</name>
 
-    <properties>
-        <screeshooter.version>2.1.0-SNAPSHOT</screeshooter.version>
-        <reporter.version>1.0.0.Alpha3</reporter.version>
-        <rusheye.version>1.0.0-SNAPSHOT</rusheye.version>
-    </properties>
+    <modules>
+	<module>arquillian-extension</module>
+	<module>webapp</module>
+    </modules>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.jboss.arquillian.graphene</groupId>
-            <artifactId>arquillian-browser-screenshooter</artifactId>
-            <version>${screeshooter.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.arquillian.extension</groupId>
-            <artifactId>arquillian-recorder-reporter-impl</artifactId>
-            <version>${reporter.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.rusheye</groupId>
-            <artifactId>rusheye-impl</artifactId>
-            <version>${rusheye.version}</version>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.1</version>
-                    <configuration>
-                        <source>1.7</source>
-                        <target>1.7</target>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
-
+    <description>
+        This is the parent for Graphene Visual Testing extension.
+    </description>
 </project>
