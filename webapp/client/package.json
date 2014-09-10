@@ -1,9 +1,9 @@
 {
-  "version": "0.0.0",
-  "private": true,
-  "name": "angular-phonecat",
-  "description": "A tutorial application for AngularJS",
-  "repository": "https://github.com/angular/angular-phonecat",
+  "version": "0.0.1-SNAPSHOT",
+  "private": false,
+  "name": "graphene-visual-testing-webapp-client",
+  "description": "Client for Graphene Visual testing web app",
+  "repository": "https://github.com/jhuska/graphene-visual-testing",
   "license": "MIT",
   "devDependencies": {
     "karma": "^0.12.16",

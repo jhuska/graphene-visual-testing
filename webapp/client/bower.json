@@ -1,10 +1,10 @@
 {
-  "name": "angular-phonecat",
-  "description": "A starter project for AngularJS",
-  "version": "0.0.0",
-  "homepage": "https://github.com/angular/angular-phonecat",
+  "name": "graphene-visual-testing-webapp-client",
+  "description": "Client for Graphene Visual testing web app",
+  "version": "0.0.1-SNAPSHOT",
+  "homepage": "https://github.com/jhuska/graphene-visual-testing",
   "license": "MIT",
-  "private": true,
+  "private": false,
   "dependencies": {
     "angular": "1.2.x",
     "angular-mocks": "~1.2.x",
