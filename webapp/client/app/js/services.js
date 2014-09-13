@@ -10,3 +10,10 @@ visualTestingServices.factory('Job', ['$resource',
       query: {method:'GET', isArray:true}
     });
   }]);
+
+visualTestingServices.factory('Run', ['$resource',
+  function($resource){
+    return $resource('jobs/runs.json', {}, {
+      query: {method:'GET', isArray:true}
+    });
+  }]);

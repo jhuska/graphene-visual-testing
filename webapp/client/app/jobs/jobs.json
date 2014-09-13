@@ -1,22 +1,26 @@
 [
     {
-        "age": 0, 
-        "id": "RichFaces Showcase - firefox", 
+        "jobId" : 1,
+        "age": 1, 
+        "name": "RichFaces Showcase - firefox", 
         "snippet": "Last upload: 22 August, 2014 \r\n 15 Screenshots"
     }, 
     {
-        "age": 1, 
-        "id": "RichFaces Showcase - Chrome", 
+        "jobId" : 2,
+        "age": 0, 
+        "name": "RichFaces Showcase - Chrome", 
         "snippet": "Last upload: 19 August, 2014 \r\n 8 Screenshots"
     }, 
     {
-        "age": 2, 
-        "id": "Ticket monster - Openshift", 
+        "jobId" : 3,
+        "age": 3, 
+        "name": "Ticket monster - Openshift", 
         "snippet": "Last upload: 1 August, 2014 \r\n 4 Screenshots"
     }, 
     {
-        "age": 3, 
-        "id": "Unified Push - admin UI - Chrome", 
+        "jobId" : 4,
+        "age": 2, 
+        "name": "Unified Push - admin UI - Chrome", 
         "snippet": "Last upload: 5 August, 2014 \r\n 1 Screenshots"
     }
 ]

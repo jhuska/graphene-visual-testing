@@ -1,7 +1,6 @@
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-md-2">
-      <!--Sidebar content-->
+<div>
+  <div>
+    <div>
 
       Search: <input ng-model="query">
       Sort by:
@@ -11,13 +10,12 @@
       </select>
 
     </div>
-    <div class="col-md-10">
-      <!--Body content-->
+    <div>
 
-      <ul class="jobs">
+      <ul>
         <li ng-repeat="job in jobs | filter:query | orderBy:orderProp">
-          <a href="#/jobs/{{job.id}}">{{job.id}}</a>
-          <p>{{job.description}}</p>
+          <a href="#/jobs/{{job.jobId}}">{{job.name}}</a>
+          <p>{{job.snippet}}</p>
         </li>
       </ul>
 

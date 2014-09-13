@@ -9,3 +9,8 @@ visualTestingControllers.controller('JobListCtrl', ['$scope', 'Job',
     $scope.jobs = Job.query();
     $scope.orderProp = 'age';
   }]);
+
+visualTestingControllers.controller('JobRunsCtrl', ['$scope', 'Run',
+  function($scope, Run) {
+    $scope.runs = Run.query();
+  }]);

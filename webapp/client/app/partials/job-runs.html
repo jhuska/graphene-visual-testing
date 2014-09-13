@@ -1,0 +1,15 @@
+<a href="#/jobs">back to jobs list</a>
+<div>
+
+  <ul>
+    <li ng-repeat="run in runs">
+      <a href="#/jobs/{{run.jobId}}/runs/{{run.runId}}">
+        {{run.timestamp}}
+      </a>
+      <p>commit: {{run.commit}}</p>
+      <p>{{run.diffs}}</p>
+      <p>{{run.tests}}</p>
+    </li>
+  </ul>
+
+</div>
