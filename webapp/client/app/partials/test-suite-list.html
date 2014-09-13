@@ -13,9 +13,9 @@
     <div>
 
       <ul>
-        <li ng-repeat="job in jobs | filter:query | orderBy:orderProp">
-          <a href="#/jobs/{{job.jobId}}">{{job.name}}</a>
-          <p>{{job.snippet}}</p>
+        <li ng-repeat="suite in suites | filter:query | orderBy:orderProp">
+          <a href="#/suites/{{suite.suiteId}}">{{suite.name}}</a>
+          <p>{{suite.snippet}}</p>
         </li>
       </ul>
 

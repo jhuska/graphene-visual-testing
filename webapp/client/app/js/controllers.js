@@ -4,13 +4,13 @@
 
 var visualTestingControllers = angular.module('visualTestingControllers', []);
 
-visualTestingControllers.controller('JobListCtrl', ['$scope', 'Job',
-  function($scope, Job) {
-    $scope.jobs = Job.query();
+visualTestingControllers.controller('SuiteListCtrl', ['$scope', 'Suite',
+  function($scope, Suite) {
+    $scope.suites = Suite.query();
     $scope.orderProp = 'age';
   }]);
 
-visualTestingControllers.controller('JobRunsCtrl', ['$scope', 'Run',
+visualTestingControllers.controller('SuiteRunsCtrl', ['$scope', 'Run',
   function($scope, Run) {
     $scope.runs = Run.query();
   }]);

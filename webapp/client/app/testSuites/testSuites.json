@@ -1,24 +1,24 @@
 [
     {
-        "jobId" : 1,
+        "suiteId" : 1,
         "age": 1, 
         "name": "RichFaces Showcase - firefox", 
         "snippet": "Last upload: 22 August, 2014 \r\n 15 Screenshots"
     }, 
     {
-        "jobId" : 2,
+        "suiteId" : 2,
         "age": 0, 
         "name": "RichFaces Showcase - Chrome", 
         "snippet": "Last upload: 19 August, 2014 \r\n 8 Screenshots"
     }, 
     {
-        "jobId" : 3,
+        "suiteId" : 3,
         "age": 3, 
         "name": "Ticket monster - Openshift", 
         "snippet": "Last upload: 1 August, 2014 \r\n 4 Screenshots"
     }, 
     {
-        "jobId" : 4,
+        "suiteId" : 4,
         "age": 2, 
         "name": "Unified Push - admin UI - Chrome", 
         "snippet": "Last upload: 5 August, 2014 \r\n 1 Screenshots"

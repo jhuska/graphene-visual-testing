@@ -4,16 +4,16 @@
 
 var visualTestingServices = angular.module('visualTestingServices', ['ngResource']);
 
-visualTestingServices.factory('Job', ['$resource',
+visualTestingServices.factory('Suite', ['$resource',
   function($resource){
-    return $resource('jobs/jobs.json', {}, {
+    return $resource('testSuites/testSuites.json', {}, {
       query: {method:'GET', isArray:true}
     });
   }]);
 
 visualTestingServices.factory('Run', ['$resource',
   function($resource){
-    return $resource('jobs/runs.json', {}, {
+    return $resource('testSuites/testSuiteRuns.json', {}, {
       query: {method:'GET', isArray:true}
     });
   }]);

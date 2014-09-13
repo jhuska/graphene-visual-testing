@@ -11,19 +11,19 @@ var visualTestingApp = angular.module('visualTestingApp', [
 visualTestingApp.config(['$routeProvider',
   function($routeProvider) {
     $routeProvider.
-      when('/jobs', {
-        templateUrl: 'partials/job-list.html',
-        controller: 'JobListCtrl'
+      when('/suites', {
+        templateUrl: 'partials/test-suite-list.html',
+        controller: 'SuiteListCtrl'
       }).
-      when('/jobs/:jobId', {
-        templateUrl: 'partials/job-runs.html',
-        controller: 'JobRunsCtrl'
+      when('/suites/:suiteId', {
+        templateUrl: 'partials/test-suite-runs-list.html',
+        controller: 'SuiteRunsCtrl'
       }).
-      when('/jobs/:jobId/runs/:runId', {
+      when('/suites/:suiteId/runs/:runId', {
         templateUrl: 'partials/particular-run.html',
         controller: 'ParticularRunCtrl'
       }).
       otherwise({
-        redirectTo: '/jobs'
+        redirectTo: '/suites'
       });
   }]);
