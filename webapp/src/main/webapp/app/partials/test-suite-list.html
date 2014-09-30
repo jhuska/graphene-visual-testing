@@ -1,0 +1,22 @@
+<div>
+  <div>
+    <div>
+
+      Search: <input ng-model="query">
+      Sort by:
+      <select ng-model="orderProp">
+        <option value="name">Alphabetical</option>
+      </select>
+
+    </div>
+    <div>
+
+      <ul>
+        <li ng-repeat="suite in suites | filter:query | orderBy:orderProp">
+          <a href="#/suites/{{suite.testSuiteID}}">{{suite.name}}</a>
+        </li>
+      </ul>
+
+    </div>
+  </div>
+</div>
