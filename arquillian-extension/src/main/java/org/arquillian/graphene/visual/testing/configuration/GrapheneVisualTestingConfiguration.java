@@ -5,14 +5,8 @@ import java.io.File;
 import org.arquillian.extension.recorder.Configuration;
 import org.arquillian.extension.recorder.RecorderConfigurationException;
 import org.arquillian.extension.recorder.screenshooter.ScreenshooterConfiguration;
-import org.arquillian.recorder.reporter.ReporterConfiguration;
-import org.jboss.arquillian.core.api.Instance;
-import org.jboss.arquillian.core.api.annotation.Inject;
 
 public class GrapheneVisualTestingConfiguration extends Configuration<ScreenshooterConfiguration> {
-
-    @Inject
-    private Instance<ReporterConfiguration> reporterConfiguration;
 
     private String lastValidScreenshots = "target";
 
@@ -24,6 +18,8 @@ public class GrapheneVisualTestingConfiguration extends Configuration<Screenshoo
     
     private String deploymentURLRoot = "http://locahost:8080/visual-testing";
     
+    private String testSuiteName = "pseudo-random";
+    
     public GrapheneVisualTestingConfiguration() {
     }
 
@@ -33,6 +29,10 @@ public class GrapheneVisualTestingConfiguration extends Configuration<Screenshoo
 
     public File getResult() {
         return new File(getProperty("result", result));
+    }
+    
+    public String getTestSuiteName() {
+        return getProperty("testSuiteName", testSuiteName);
     }
 
     public File getDiffs() {
@@ -54,6 +54,7 @@ public class GrapheneVisualTestingConfiguration extends Configuration<Screenshoo
         sb.append(String.format("%-40s %s\n", "result", getResult()));
         sb.append(String.format("%-40s %s\n", "diffs", getDiffs()));
         sb.append(String.format("%-40s %s\n", "isFirstRun", isFirstRun()));
+        sb.append(String.format("%-40s %s\n", "testSuiteName", getTestSuiteName()));
         return sb.toString();
     }
 

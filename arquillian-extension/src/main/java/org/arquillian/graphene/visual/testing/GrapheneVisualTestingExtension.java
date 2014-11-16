@@ -5,6 +5,7 @@ import org.arquillian.graphene.visual.testing.configuration.GrapheneVisualTestin
 import org.arquillian.graphene.visual.testing.impl.AfterSuiteListener;
 import org.arquillian.graphene.visual.testing.impl.CrawlingDoneObserver;
 import org.arquillian.graphene.visual.testing.impl.DummyDescriptorAndPatternsHandler;
+import org.arquillian.graphene.visual.testing.impl.JCRDescriptorAndPatternsHandler;
 import org.jboss.arquillian.core.spi.LoadableExtension;
 
 public class GrapheneVisualTestingExtension implements LoadableExtension {
@@ -14,6 +15,7 @@ public class GrapheneVisualTestingExtension implements LoadableExtension {
         builder.observer(GrapheneVisualTestingConfigurator.class);
         builder.observer(CrawlingDoneObserver.class);
         
-        builder.service(DescriptorAndPatternsHandler.class, DummyDescriptorAndPatternsHandler.class);
+//        builder.service(DescriptorAndPatternsHandler.class, DummyDescriptorAndPatternsHandler.class);
+        builder.service(DescriptorAndPatternsHandler.class, JCRDescriptorAndPatternsHandler.class);
     }
 }
