@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Archiver-Version: Plexus Archiver
+Created-By: Apache Maven
+Built-By: jhuska
+Build-Jdk: 1.7.0_55
+Dependencies: org.jboss.resteasy.resteasy-jaxb-provider export services, javax.jcr, org.modeshape.jcr.api export services, org.modeshape export services

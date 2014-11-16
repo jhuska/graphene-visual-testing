@@ -13,4 +13,5 @@ public class TestSuiteRunRESTService {
     
     @Inject
     private TestSuiteRunManager testSuiteRunManager;
+    
 }

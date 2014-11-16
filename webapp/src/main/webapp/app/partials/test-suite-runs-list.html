@@ -3,12 +3,12 @@
 
   <ul>
     <li ng-repeat="run in runs">
-      <a href="#/suites/{{run.suiteId}}/runs/{{run.runId}}">
-        {{run.timestamp}}
+      <a href="#/suites/{{run.testSuite.testSuiteID}}/runs/{{run.testSuiteRunID}}">
+        {{timestampToDate(run.timestamp)}}
       </a>
-      <p>commit: {{run.commit}}</p>
-      <p>{{run.diffs}}</p>
-      <p>{{run.tests}}</p>
+      <p>project revision: {{run.projectRevision}}</p>
+      <p>failed tests: {{run.numberOfFailedFunctionalTests}}</p>
+      <p>diffs: {{run.numberOfFailedComparisons}}</p>
     </li>
   </ul>
 

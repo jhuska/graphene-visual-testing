@@ -1,7 +1,9 @@
 package org.jboss.arquillian.model.testSuite;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,8 +13,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.persistence.OneToMany;
 
 /**
  *
@@ -24,10 +25,9 @@ public class TestSuiteRun {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "TEST_SUITE_RUN_ID")
-    private Long testSuiteRunID;
+    private long testSuiteRunID;
     
     @Column(name = "TEST_SUITE_RUN_TIMESTAMP")
-    @Temporal(TemporalType.TIMESTAMP)
     private Date timestamp;
     
     private String projectRevision;
@@ -40,6 +40,10 @@ public class TestSuiteRun {
     @JoinColumn(name = "TEST_SUITE_ID")
     @JsonManagedReference
     private TestSuite testSuite;
+    
+    @OneToMany(mappedBy = "testSuiteRun", fetch = FetchType.EAGER)
+    @JsonBackReference
+    private List<Comparison> comparisons;
 
     public long getTestSuiteRunID() {
         return testSuiteRunID;
@@ -91,12 +95,7 @@ public class TestSuiteRun {
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 59 * hash + Objects.hashCode(this.timestamp);
-        hash = 59 * hash + Objects.hashCode(this.projectRevision);
-        hash = 59 * hash + this.numberOfFailedFunctionalTests;
-        hash = 59 * hash + this.numberOfFailedComparisons;
-        hash = 59 * hash + Objects.hashCode(this.testSuite);
+        int hash = 3;
         return hash;
     }
 
@@ -124,11 +123,14 @@ public class TestSuiteRun {
         if (!Objects.equals(this.testSuite, other.testSuite)) {
             return false;
         }
+        if (!Objects.equals(this.comparisons, other.comparisons)) {
+            return false;
+        }
         return true;
     }
 
     @Override
     public String toString() {
-        return "TestSuiteRun{" + "testSuiteRunID=" + testSuiteRunID + ", timestamp=" + timestamp + ", projectRevision=" + projectRevision + ", numberOfFailedFunctionalTests=" + numberOfFailedFunctionalTests + ", numberOfFailedComparisons=" + numberOfFailedComparisons + ", testSuite=" + testSuite + '}';
+        return "TestSuiteRun{" + "testSuiteRunID=" + testSuiteRunID + ", timestamp=" + timestamp + ", projectRevision=" + projectRevision + ", numberOfFailedFunctionalTests=" + numberOfFailedFunctionalTests + ", numberOfFailedComparisons=" + numberOfFailedComparisons + ", testSuite=" + testSuite + ", comparisons=" + comparisons + '}';
     }
 }

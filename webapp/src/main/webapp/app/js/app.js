@@ -17,11 +17,11 @@ visualTestingApp.config(['$routeProvider',
         templateUrl: PARTIALS + '/test-suite-list.html',
         controller: 'SuiteListCtrl'
       }).
-      when('/suites/:suiteId', {
+      when('/suites/:testSuiteID', {
         templateUrl: PARTIALS + '/test-suite-runs-list.html',
         controller: 'SuiteRunsCtrl'
       }).
-      when('/suites/:suiteId/runs/:runId', {
+      when('/suites/:testSuiteID/runs/:runId', {
         templateUrl: PARTIALS + '/particular-run.html',
         controller: 'ParticularRunCtrl'
       }).

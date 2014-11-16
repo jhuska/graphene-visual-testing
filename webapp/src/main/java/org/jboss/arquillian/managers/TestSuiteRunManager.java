@@ -23,7 +23,7 @@ public class TestSuiteRunManager {
     
     public List<TestSuiteRun> getAllTestSuiteRuns(Long testSuiteID) {
         Query q = em.createQuery
-            ("SELECT tsr FROM TEST_SUITE_RUN tsr WHERE tsr.test_suite_id = :TEST_SUITE_ID");
+            ("SELECT tsr FROM TEST_SUITE ts JOIN ts.runs tsr WHERE ts.testSuiteID = :TEST_SUITE_ID");
         q.setParameter("TEST_SUITE_ID", testSuiteID);
         return q.getResultList();
     }
