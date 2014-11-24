@@ -2,9 +2,13 @@ package org.arquillian.graphene.visual.testing.impl;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.logging.Logger;
+import java.util.Set;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.StatusLine;
@@ -27,6 +31,7 @@ import org.arquillian.graphene.visual.testing.configuration.GrapheneVisualTestin
 import org.jboss.arquillian.core.api.Instance;
 import org.jboss.arquillian.core.api.annotation.Inject;
 import org.jboss.rusheye.arquillian.configuration.RusheyeConfiguration;
+import org.json.JSONObject;
 
 /**
  *
@@ -42,6 +47,8 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
     private static final String JCR_PASSWORD = "graphene-visual-testing";
 
     private static final String JCR_REPOSITORY_URL = "http://localhost:8080/modeshape-rest/graphene-visual-testing/default";
+
+    private static final String PATTERNS_DEFAULT_DIR = "target/patterns";
 
     private static final Logger LOGGER = Logger.getLogger(JCRDescriptorAndPatternsHandler.class.getName());
 
@@ -73,27 +80,85 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
                 String.format("Error while uploading test suite descriptor for test suite: %s", suiteName));
 
         //UPLOADING PATTERNS
-        return crawlPatternsAndUploadThem(patternsRootDir, patternsRootDir.getName(), httpclient);
-    }
-    
-    @Override
-    public String retrieveDescriptorAndPatterns() {
-        CloseableHttpClient httpclient = getHTTPClient();
-        File patternsDir = new File("target/patterns");
-        String suiteName = grapheneVisualTestingConf.get().getTestSuiteName();
-        
-        HttpGet getDescriptor = new HttpGet(JCR_REPOSITORY_URL + "/items/" + suiteName + "/suite.xml");
-        executeGet(getDescriptor, httpclient, 
-                String.format("Suite descriptor for %s was retrieved.", suiteName), 
-                String.format("ERROR occurred while retrieving suite descriptor for %s", suiteName));
-        return null;
+        return crawlAndUploadPatterns(patternsRootDir, patternsRootDir.getName(), httpclient);
     }
 
-    private boolean crawlPatternsAndUploadThem(File patternsDir, String rootOfPatterns, CloseableHttpClient httpClient) {
+    @Override
+    public String retrieveDescriptorAndPatterns() {
+        CloseableHttpClient httpClient = getHTTPClient();
+        String suiteName = grapheneVisualTestingConf.get().getTestSuiteName();
+
+        HttpGet getDescriptor = new HttpGet(JCR_REPOSITORY_URL + "/binary/" + suiteName + "/suite.xml/jcr%3acontent/jcr%3adata");
+        createDir(PATTERNS_DEFAULT_DIR);
+        executeGetAndSaveToFile(getDescriptor, httpClient, PATTERNS_DEFAULT_DIR + "/suite.xml",
+                String.format("Suite descriptor for %s was retrieved.", suiteName),
+                String.format("ERROR occurred while retrieving suite descriptor for %s", suiteName));
+
+        HttpGet getAllChildren = new HttpGet(JCR_REPOSITORY_URL + "/items/" + suiteName + "?depth=-1");
+        getAllChildren.addHeader("Accept", "application/json");
+        JSONObject allSuiteChildren = new JSONObject(executeGet(getAllChildren, httpClient, "All children retrieved",
+                "Error while retrieving all children"));
+        JSONObject testClasses = allSuiteChildren.getJSONObject("children").getJSONObject("patterns").getJSONObject("children");
+
+        findAndDownloadScreenshot(testClasses, suiteName, httpClient);
+
+        return PATTERNS_DEFAULT_DIR;
+    }
+
+    private void findAndDownloadScreenshot(JSONObject testClasses, String suiteName, CloseableHttpClient httpClient) {
+        StringBuilder builder = new StringBuilder();
+        for (Object testClass : testClasses.keySet()) {
+            builder.append(testClass.toString());
+            JSONObject tests = testClasses.getJSONObject(testClass.toString()).getJSONObject("children");
+            for (Object test : tests.keySet()) {
+                builder = appendWrappedStringWithSeparator(builder, test.toString());
+                File testDir = new File(PATTERNS_DEFAULT_DIR + File.separator + builder.toString());
+                testDir.mkdirs();
+                JSONObject screenshots = tests.getJSONObject(test.toString()).getJSONObject("children");
+                for (Object screenshot : screenshots.keySet()) {
+                    builder.append(screenshot.toString());
+                    String screenURL = suiteName + "/"
+                            + testClass.toString() + "/" + test.toString() + "/" + screenshot.toString();
+                    LOGGER.info(screenURL);
+                    HttpGet getScreenshot = new HttpGet(JCR_REPOSITORY_URL + "/binary/" + screenURL
+                            + "/jcr%3acontent/jcr%3adata");
+                    executeGetAndSaveToFile(getScreenshot, httpClient, testDir.getAbsolutePath() ,"Screenshot retrieved from URL: " + screenURL,
+                            "Error while retrieving screenshot: " + screenURL);
+                    builder = new StringBuilder();
+                    builder.append(testClass.toString());
+                    builder = appendWrappedStringWithSeparator(builder, test.toString());
+                }
+                builder = new StringBuilder();
+                builder.append(testClass.toString());
+            }
+            builder = new StringBuilder();
+        }
+    }
+
+    private StringBuilder appendWrappedStringWithSeparator(StringBuilder builder, String toBeWrapped) {
+        builder.append(File.separator);
+        builder.append(toBeWrapped);
+        builder.append(File.separator);
+        return builder;
+    }
+
+    private void createDir(String path) {
+        File theDir = new File(path);
+
+        if (!theDir.exists()) {
+            try {
+                theDir.mkdir();
+            } catch (SecurityException se) {
+                throw new RuntimeException(se);
+            }
+        }
+    }
+
+    private boolean crawlAndUploadPatterns(File patternsDir, String rootOfPatterns, CloseableHttpClient httpClient) {
         boolean result = true;
         for (File dirOrFile : patternsDir.listFiles()) {
             if (dirOrFile.isDirectory()) {
-                result = crawlPatternsAndUploadThem(dirOrFile, rootOfPatterns, httpClient);
+                result = crawlAndUploadPatterns(dirOrFile, rootOfPatterns, httpClient);
             } else {
                 String suiteName = grapheneVisualTestingConf.get().getTestSuiteName();
                 String absolutePath = dirOrFile.getAbsolutePath();
@@ -108,7 +173,7 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
                         String.format("ERROR: pattern %s was not uploaded to test suite %s", dirOrFile.getName(), suiteName));
             }
             //if partial result is false, finish early with false status
-            if(!result) {
+            if (!result) {
                 return result;
             }
         }
@@ -117,32 +182,41 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
 
     private String executeGet(HttpGet httpGet, CloseableHttpClient httpclient, String successLog, String errorLog) {
         CloseableHttpResponse response = null;
+        BufferedReader bfr = null;
+        StringBuilder builder = new StringBuilder();
         try {
             response = httpclient.execute(httpGet);
             if (response.getStatusLine().getStatusCode() != 200) {
                 if (errorLog != null) {
                     LOGGER.severe(errorLog);
                 }
-                return null;
             }
             HttpEntity entity = response.getEntity();
-            BufferedReader bfr = new BufferedReader(new InputStreamReader(entity.getContent()));
-            StringBuffer result = new StringBuffer();
-            String line = bfr.readLine();
-            while (line != null) {
-                result.append(line);
-                line = bfr.readLine();
+            if (entity != null) {
+                bfr = new BufferedReader(new InputStreamReader(entity.getContent()));
+
+                String line = bfr.readLine();
+                while (line != null) {
+                    builder.append(line);
+                    line = bfr.readLine();
+                }
+                EntityUtils.consume(entity);
+                if (successLog != null) {
+                    LOGGER.info(successLog);
+                }
             }
-            EntityUtils.consume(entity);
-            if (successLog != null) {
-                LOGGER.info(successLog);
-            }
-            return result.toString();
         } catch (IOException ex) {
             if (errorLog != null) {
                 LOGGER.severe(String.format("%s %s", errorLog, ex.getMessage()));
             }
         } finally {
+            if (bfr != null) {
+                try {
+                    bfr.close();
+                } catch (IOException ex) {
+                    LOGGER.severe(ex.getMessage());
+                }
+            }
             if (response != null) {
                 try {
                     response.close();
@@ -151,7 +225,63 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
                 }
             }
         }
-        return null;
+        return builder.toString();
+    }
+
+    private void executeGetAndSaveToFile(HttpGet httpGet, CloseableHttpClient httpclient, String pathToSaveResponse, String successLog, String errorLog) {
+        CloseableHttpResponse response = null;
+        OutputStream os = null;
+        InputStream is = null;
+        try {
+            response = httpclient.execute(httpGet);
+            if (response.getStatusLine().getStatusCode() != 200) {
+                if (errorLog != null) {
+                    LOGGER.severe(errorLog);
+                }
+            }
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                is = entity.getContent();
+                os = new FileOutputStream(new File(pathToSaveResponse));
+
+                int read = 0;
+                byte[] bytes = new byte[1024];
+
+                while ((read = is.read(bytes)) != -1) {
+                    os.write(bytes, 0, read);
+                }
+                EntityUtils.consume(entity);
+                if (successLog != null) {
+                    LOGGER.info(successLog);
+                }
+            }
+        } catch (IOException ex) {
+            if (errorLog != null) {
+                LOGGER.severe(String.format("%s %s", errorLog, ex.getMessage()));
+            }
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException ex) {
+                    LOGGER.severe(ex.getMessage());
+                }
+            }
+            if (os != null) {
+                try {
+                    os.close();
+                } catch (IOException ex) {
+                    LOGGER.severe(ex.getMessage());
+                }
+            }
+            if (response != null) {
+                try {
+                    response.close();
+                } catch (IOException ex) {
+                    LOGGER.severe(ex.getMessage());
+                }
+            }
+        }
     }
 
     private boolean executePost(HttpPost post, CloseableHttpClient httpclient, String successLog, String errorLog) {

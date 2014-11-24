@@ -56,6 +56,11 @@
             <artifactId>fluent-hc</artifactId>
             <version>4.3.6</version>
         </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20140107</version>
+        </dependency>
     </dependencies>
 
     <build>
