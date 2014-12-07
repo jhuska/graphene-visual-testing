@@ -38,7 +38,7 @@ public class TestSuiteRun {
     
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "TEST_SUITE_ID")
-    @JsonManagedReference
+//    @JsonManagedReference
     private TestSuite testSuite;
     
     @OneToMany(mappedBy = "testSuiteRun", fetch = FetchType.EAGER)

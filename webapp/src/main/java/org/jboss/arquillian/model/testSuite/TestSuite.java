@@ -23,7 +23,7 @@ public class TestSuite {
     @Column(name = "TEST_SUITE_ID")
     private Long testSuiteID;
 
-    @Column(name = "TEST_SUITE_NAME")
+    @Column(name = "TEST_SUITE_NAME", unique=true)
     private String name;
 
     private int numberOfFunctionalTests;
@@ -31,7 +31,7 @@ public class TestSuite {
     private int numberOfVisualComparisons;
     
     @OneToMany(mappedBy = "testSuite", fetch = FetchType.EAGER)
-    @JsonBackReference
+//    @JsonBackReference
     private List<TestSuiteRun> runs;
     
     public String getName() {
@@ -58,7 +58,7 @@ public class TestSuite {
         this.numberOfVisualComparisons = numberOfVisualComparisons;
     }
 
-    public long getTestSuiteID() {
+    public Long getTestSuiteID() {
         return testSuiteID;
     }
 

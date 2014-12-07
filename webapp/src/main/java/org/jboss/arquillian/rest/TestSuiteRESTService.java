@@ -4,7 +4,9 @@ import java.util.List;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.jcr.RepositoryException;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -44,6 +46,19 @@ public class TestSuiteRESTService {
     public List<TestSuiteRun> getAllTestSuiteRuns(@PathParam("testSuiteID") long id) throws RepositoryException {
         List<TestSuiteRun> result = testSuiteRunManager.getAllTestSuiteRuns(id);
         cdiController.storeSomePictures2();
+        return result;
+    }
+    
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public TestSuite createTestSuite(TestSuite testSuite) {
+        TestSuite result = null;
+        if(testSuiteManager.getTestSuite(testSuite.getName()) == null) {
+            result = testSuiteManager.createTestSuite(testSuite);
+        } else {
+            result = testSuite;
+        }
         return result;
     }
 }

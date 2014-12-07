@@ -36,7 +36,8 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
 
     @Override
     public boolean saveDescriptorAndPatterns() {
-        CloseableHttpClient httpclient = RestUtils.getHTTPClient();
+        GrapheneVisualTestingConfiguration gVC = grapheneVisualTestingConf.get();
+        CloseableHttpClient httpclient = RestUtils.getHTTPClient(gVC.getJcrContextRootURL(), gVC.getJcrUserName(), gVC.getJcrPassword());
 
         File patternsRootDir = screenshooterConf.get().getRootDir();
         File suiteDescriptor = new File(rusheyeConf.get().getWorkingDirectory().getAbsolutePath()
@@ -45,12 +46,15 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
         String suiteName = grapheneVisualTestingConf.get().getTestSuiteName();
 
         //UPLOADING TEST SUITE DESCRIPTOR
-        HttpPost postSuiteDescriptor = new HttpPost(RestUtils.JCR_REPOSITORY_URL + "/upload/" + suiteName + "/suite.xml");
+        HttpPost postSuiteDescriptor = new HttpPost(gVC.getJcrContextRootURL() + "/upload/" + suiteName + "/suite.xml");
         FileEntity descriptorEntity = new FileEntity(suiteDescriptor, ContentType.APPLICATION_XML);
         postSuiteDescriptor.setEntity(descriptorEntity);
         RestUtils.executePost(postSuiteDescriptor, httpclient,
                 String.format("Suite descriptor for %s uploaded!", suiteName),
                 String.format("Error while uploading test suite descriptor for test suite: %s", suiteName));
+        
+        //CREATE SUITE NAME IN DATABASE
+        
 
         //UPLOADING PATTERNS
         return crawlAndUploadPatterns(patternsRootDir, patternsRootDir.getName(), httpclient);
@@ -58,16 +62,17 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
 
     @Override
     public String retrieveDescriptorAndPatterns() {
-        CloseableHttpClient httpClient = RestUtils.getHTTPClient();
+        GrapheneVisualTestingConfiguration gVC = grapheneVisualTestingConf.get();
+        CloseableHttpClient httpClient = RestUtils.getHTTPClient(gVC.getJcrContextRootURL(), gVC.getJcrUserName(), gVC.getJcrPassword());
         String suiteName = grapheneVisualTestingConf.get().getTestSuiteName();
 
-        HttpGet getDescriptor = new HttpGet(RestUtils.JCR_REPOSITORY_URL + "/binary/" + suiteName + "/suite.xml/jcr%3acontent/jcr%3adata");
+        HttpGet getDescriptor = new HttpGet(gVC.getJcrContextRootURL() + "/binary/" + suiteName + "/suite.xml/jcr%3acontent/jcr%3adata");
         createDir(PATTERNS_DEFAULT_DIR);
         RestUtils.executeGetAndSaveToFile(getDescriptor, httpClient, PATTERNS_DEFAULT_DIR + "/suite.xml",
                 String.format("Suite descriptor for %s was retrieved.", suiteName),
                 String.format("ERROR occurred while retrieving suite descriptor for %s", suiteName));
 
-        HttpGet getAllChildren = new HttpGet(RestUtils.JCR_REPOSITORY_URL + "/items/" + suiteName + "?depth=-1");
+        HttpGet getAllChildren = new HttpGet(gVC.getJcrContextRootURL() + "/items/" + suiteName + "?depth=-1");
         getAllChildren.addHeader("Accept", "application/json");
         JSONObject allSuiteChildren = new JSONObject(RestUtils.executeGet(getAllChildren, httpClient, "All children retrieved",
                 "Error while retrieving all children"));
@@ -93,7 +98,7 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
                     builder.append(screenshot.toString());
                     String screenURL = suiteName + "/patterns/"
                             + testClass.toString() + "/" + test.toString() + "/" + screenshot.toString();
-                    HttpGet getScreenshot = new HttpGet(RestUtils.JCR_REPOSITORY_URL + "/binary/" + screenURL
+                    HttpGet getScreenshot = new HttpGet(grapheneVisualTestingConf.get().getJcrContextRootURL() + "/binary/" + screenURL
                             + "/jcr%3acontent/jcr%3adata");
                     File fileToSave = new File(testDir.getAbsolutePath() + File.separator + screenshot.toString());
                     RestUtils.executeGetAndSaveToFile(getScreenshot, httpClient, fileToSave.getAbsolutePath(), "Screenshot retrieved from URL: " + screenURL,
@@ -137,7 +142,7 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
                 String suiteName = grapheneVisualTestingConf.get().getTestSuiteName();
                 String absolutePath = dirOrFile.getAbsolutePath();
                 String patternRelativePath = absolutePath.split(rootOfPatterns + File.separator)[1];
-                HttpPost postPattern = new HttpPost(RestUtils.JCR_REPOSITORY_URL + "/upload/"
+                HttpPost postPattern = new HttpPost(grapheneVisualTestingConf.get().getJcrContextRootURL() + "/upload/"
                         + suiteName + "/patterns/"
                         + patternRelativePath);
                 FileEntity screenshot = new FileEntity(dirOrFile);

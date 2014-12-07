@@ -1,16 +1,12 @@
 package org.arquillian.graphene.visual.testing.impl;
 
-import org.arquillian.graphene.visual.testing.impl.jaxbmodel.VisualSuiteResult;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
@@ -51,20 +47,19 @@ public class JCRSamplesAndDiffsHandler implements SamplesAndDiffsHandler {
     @Inject
     private Instance<ScreenshooterConfiguration> screenshooterConf;
 
-    private Document resultXML = null;
-
     @Override
     public void saveSamplesAndDiffs(@Observes ParsingDoneEvent parsingDoneEvent) {
         Date timestamp = new Date();
         String timestampWithoutWhiteSpaces = timestamp.toString().replaceAll("\\s+", "_").replaceAll(":", "_");
         String suiteName = grapheneVisualTestingConf.get().getTestSuiteName();
-        CloseableHttpClient httpclient = RestUtils.getHTTPClient();
+        GrapheneVisualTestingConfiguration gVC = grapheneVisualTestingConf.get();
+        CloseableHttpClient httpclient = RestUtils.getHTTPClient(gVC.getJcrContextRootURL(), gVC.getJcrUserName(), gVC.getJcrPassword());
         File resultDescriptor = new File(rusheyeConf.get().getWorkingDirectory()
                 + File.separator
                 + rusheyeConf.get().getResultOutputFile());
 
         //UPLOADING RESULT DESCRIPTOR
-        HttpPost postResultDescriptor = new HttpPost(RestUtils.JCR_REPOSITORY_URL + "/upload/" + suiteName + "/runs/"
+        HttpPost postResultDescriptor = new HttpPost(gVC.getJcrContextRootURL() + "/upload/" + suiteName + "/runs/"
                 + timestampWithoutWhiteSpaces + "/result.xml");
         FileEntity descriptorEntity = new FileEntity(resultDescriptor, ContentType.APPLICATION_XML);
         postResultDescriptor.setEntity(descriptorEntity);
@@ -73,26 +68,46 @@ public class JCRSamplesAndDiffsHandler implements SamplesAndDiffsHandler {
                 String.format("Error while uploading test suite result descriptor for test suite: %s", suiteName));
 
         //UPLOADING DIFFS AND SAMPLES IF ANY
-        List<String> diffNames = getDiffNames();
-        if (!diffNames.isEmpty()) {
-            uploadSamples(timestampWithoutWhiteSpaces);
-            File diffsDir = new File(rusheyeConf.get().getWorkingDirectory()
-                    + File.separator
-                    + rusheyeConf.get().getDiffsDir());
-            uploadDiffs(diffNames, diffsDir, timestampWithoutWhiteSpaces);
+        Map<String, String> patternsNamesAndCorrespondingDiffs = getDiffNames();
+        if (!patternsNamesAndCorrespondingDiffs.isEmpty()) {
+            uploadDiffs(patternsNamesAndCorrespondingDiffs, timestampWithoutWhiteSpaces);
+            uploadSamples(patternsNamesAndCorrespondingDiffs, timestampWithoutWhiteSpaces);
+        }
+    }
+    
+    private void uploadSamples(Map<String, String> patternsNamesAndCorrespondingDiffs, String timestamp) {
+        final File screenshotsDir = screenshooterConf.get().getRootDir();
+        final String suiteName = grapheneVisualTestingConf.get().getTestSuiteName();
+
+        NodeList testNodes = getDOMFromSuiteXML().getElementsByTagName("test");
+        for (Map.Entry<String, String> entry : patternsNamesAndCorrespondingDiffs.entrySet()) {
+            for (int i = 0; i < testNodes.getLength(); i++) {
+                if (testNodes.item(i).getAttributes().getNamedItem("name").getNodeValue().equals(entry.getKey())) {
+                    String patternSource = testNodes.item(i).getChildNodes().item(1).getAttributes()
+                            .getNamedItem("source").getNodeValue();
+                    //UPLOAD SAMPLE
+                    File sampleToUpload = new File(screenshotsDir + File.separator + patternSource);
+                    String url = grapheneVisualTestingConf.get().getJcrContextRootURL() + "/upload/" + suiteName + "/runs/"
+                            + timestamp + "/samples/" + patternSource;
+                    HttpPost postResultDescriptor = new HttpPost(url);
+                    FileEntity sampleEntity = new FileEntity(sampleToUpload);
+                    postResultDescriptor.setEntity(sampleEntity);
+                    GrapheneVisualTestingConfiguration gVC = grapheneVisualTestingConf.get();
+                    RestUtils.executePost(postResultDescriptor, RestUtils.getHTTPClient(gVC.getJcrContextRootURL(), 
+                            gVC.getJcrUserName(), gVC.getJcrPassword()),
+                            String.format("Sample for %s uploaded!", suiteName),
+                            String.format("Error while uploading sample for test suite: %s", suiteName));
+                }
+            }
         }
     }
 
-    private void uploadSamples(String timestamp) {
-        final File screenshotsDir = screenshooterConf.get().getRootDir();
-        final String suiteName = grapheneVisualTestingConf.get().getTestSuiteName();
-        final String urlToSaveAt = "/runs/" + timestamp + "/samples/";
-        RestUtils.crawlAndUploadScreenshots(screenshotsDir, screenshotsDir.getName(), suiteName, urlToSaveAt);
-    }
-
-    private void uploadDiffs(List<String> diffNames, File diffsDir, String timestampWithoutWhiteSpaces) {
+    private void uploadDiffs(Map<String, String> patternsNamesAndCorrespondingDiffs, String timestampWithoutWhiteSpaces) {
         String suiteName = grapheneVisualTestingConf.get().getTestSuiteName();
-        for (final String diffName : diffNames) {
+        for (final String diffName : patternsNamesAndCorrespondingDiffs.keySet()) {
+            File diffsDir = new File(rusheyeConf.get().getWorkingDirectory()
+                    + File.separator
+                    + rusheyeConf.get().getDiffsDir());
             File[] diffsWithSearchedName = diffsDir.listFiles(new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String name) {
@@ -106,55 +121,58 @@ public class JCRSamplesAndDiffsHandler implements SamplesAndDiffsHandler {
             } else {
                 //UPLOADING DIFF
                 File diffToUpload = diffsWithSearchedName[0];
-                HttpPost postResultDescriptor = new HttpPost(RestUtils.JCR_REPOSITORY_URL + "/upload/" + suiteName + "/runs/"
-                        + timestampWithoutWhiteSpaces + "/diffs/" + diffName);
+                GrapheneVisualTestingConfiguration gVC = grapheneVisualTestingConf.get();
+                HttpPost postResultDescriptor = new HttpPost(gVC.getJcrContextRootURL() + "/upload/" + suiteName + "/runs/"
+                        + timestampWithoutWhiteSpaces + "/diffs/" + diffToUpload.getName());
                 FileEntity diffEntity = new FileEntity(diffToUpload);
                 postResultDescriptor.setEntity(diffEntity);
-                RestUtils.executePost(postResultDescriptor, RestUtils.getHTTPClient(),
+                RestUtils.executePost(postResultDescriptor, RestUtils.getHTTPClient(gVC.getJcrContextRootURL(), 
+                            gVC.getJcrUserName(), gVC.getJcrPassword()),
                         String.format("Diff for %s uploaded!", suiteName),
                         String.format("Error while uploading diff for test suite: %s", suiteName));
-
             }
         }
     }
 
-    private List<String> getDiffNames() {
-        List<String> result = new ArrayList<>();
-        NodeList testNodes = getDOMLazilyFromResultXML().getElementsByTagName("test");
+    private Map<String, String> getDiffNames() {
+        Map<String, String> result = new HashMap<>();
+        NodeList testNodes = getDOMFromResultXML().getElementsByTagName("test");
         for (int i = 0; i < testNodes.getLength(); i++) {
             Node patternTag = testNodes.item(i).getChildNodes().item(1);
             String resultAttribute = patternTag.getAttributes().
                     getNamedItem("result").getNodeValue();
             if (ResultConclusion.valueOf(resultAttribute).equals(ResultConclusion.DIFFER)) {
-                result.add(patternTag.getAttributes().getNamedItem("output").getNodeValue());
+                String outputAttrValue = patternTag.getAttributes().getNamedItem("output").getNodeValue();
+                String nameAttrValue = patternTag.getAttributes().getNamedItem("name").getNodeValue();
+                result.put(nameAttrValue, outputAttrValue);
             }
         }
         return result;
     }
 
-    private Document getDOMLazilyFromResultXML() {
-        if (this.resultXML == null) {
-            try {
-                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                DocumentBuilder db;
-                db = dbf.newDocumentBuilder();
-                String resultFilePath = rusheyeConf.get().getWorkingDirectory()
-                        + File.separator + rusheyeConf.get().getResultOutputFile();
-                this.resultXML = db.parse(new File(resultFilePath));
-            } catch (ParserConfigurationException ex) {
-                Logger.getLogger(JCRSamplesAndDiffsHandler.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SAXException ex) {
-                Logger.getLogger(JCRSamplesAndDiffsHandler.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(JCRSamplesAndDiffsHandler.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        return this.resultXML;
+    private Document getDOMFromResultXML() {
+        String resultFilePath = rusheyeConf.get().getWorkingDirectory()
+                + File.separator + rusheyeConf.get().getResultOutputFile();
+        return getDOMFromXMLFile(new File(resultFilePath));
     }
 
-    private void postResultXML(Date timestamp) {
-        HttpPost postSuiteDescriptor = new HttpPost(RestUtils.JCR_REPOSITORY_URL + "/upload/"
-                + grapheneVisualTestingConf.get().getTestSuiteName() + "/runs/");
+    private Document getDOMFromSuiteXML() {
+        String suiteFilePath = JCRDescriptorAndPatternsHandler.PATTERNS_DEFAULT_DIR
+                + File.separator + rusheyeConf.get().getSuiteDescriptor().getName();
+        return getDOMFromXMLFile(new File(suiteFilePath));
+    }
+
+    private Document getDOMFromXMLFile(File xmlFile) {
+        Document result = null;
+        try {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db;
+            db = dbf.newDocumentBuilder();
+            result = db.parse(xmlFile);
+        } catch (ParserConfigurationException | SAXException | IOException ex) {
+            Logger.getLogger(JCRSamplesAndDiffsHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
     }
 
     public Instance<RusheyeConfiguration> getRusheyeConf() {

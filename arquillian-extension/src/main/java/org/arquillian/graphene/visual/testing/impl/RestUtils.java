@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -17,7 +20,6 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.FileEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -29,15 +31,6 @@ import org.apache.http.util.EntityUtils;
  */
 public class RestUtils {
 
-    public static final String JCR_PROTOCOL = "http";
-    public static final String JCR_HOST = "localhost";
-    public static final Integer JCR_PORT = 8080;
-
-    public static final String JCR_USER_NAME = "graphene-visual-testing";
-    public static final String JCR_PASSWORD = "graphene-visual-testing";
-
-    public static final String JCR_REPOSITORY_URL = "http://localhost:8080/modeshape-rest/graphene-visual-testing/default";
-    
     private static final Logger LOGGER = Logger.getLogger(RestUtils.class.getName());
     
     public static String executeGet(HttpGet httpGet, CloseableHttpClient httpclient, String successLog, String errorLog) {
@@ -180,39 +173,19 @@ public class RestUtils {
                 || response.getStatusLine().getStatusCode() == 201;
     }
 
-    public static CloseableHttpClient getHTTPClient() {
-        HttpHost target = new HttpHost(JCR_HOST, JCR_PORT, JCR_PROTOCOL);
+    public static CloseableHttpClient getHTTPClient(String jcrContextRootUrl, String jcrUserName, String jcrPassword) {
+        URL jcrUrl = null;
+        try {
+            jcrUrl = new URL(jcrContextRootUrl);
+        } catch (MalformedURLException ex) {
+            //OK validated on another level
+        }
+        HttpHost target = new HttpHost(jcrUrl.getHost(), jcrUrl.getPort(), jcrUrl.getProtocol());
         CredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(
                 new AuthScope(target.getHostName(), target.getPort()),
-                new UsernamePasswordCredentials(JCR_USER_NAME, JCR_PASSWORD));
+                new UsernamePasswordCredentials(jcrUserName, jcrPassword));
         return HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider).build();
-    }
-    
-    public static boolean crawlAndUploadScreenshots(File screenshotsDir, String rootOfScreenshots, 
-            String suiteName, String urlToSaveAt) {
-        boolean result = true;
-        for (File dirOrFile : screenshotsDir.listFiles()) {
-            if (dirOrFile.isDirectory()) {
-                result = crawlAndUploadScreenshots(dirOrFile, rootOfScreenshots, suiteName, urlToSaveAt);
-            } else {
-                String absolutePath = dirOrFile.getAbsolutePath();
-                String screenshotRelativePath = absolutePath.split(rootOfScreenshots + File.separator)[1];
-                HttpPost postPattern = new HttpPost(RestUtils.JCR_REPOSITORY_URL + "/upload/"
-                        + suiteName + urlToSaveAt
-                        + screenshotRelativePath);
-                FileEntity screenshot = new FileEntity(dirOrFile);
-                postPattern.setEntity(screenshot);
-                result = RestUtils.executePost(postPattern, getHTTPClient(),
-                        String.format("Screenshot %s uploaded to test suite: %s", dirOrFile.getName(), suiteName),
-                        String.format("ERROR: screenshot %s was not uploaded to test suite %s", dirOrFile.getName(), suiteName));
-            }
-            //if partial result is false, finish early with false status
-            if (!result) {
-                return result;
-            }
-        }
-        return result;
     }
 }

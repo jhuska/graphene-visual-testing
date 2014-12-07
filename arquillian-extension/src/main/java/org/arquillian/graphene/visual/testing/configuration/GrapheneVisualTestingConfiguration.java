@@ -16,9 +16,15 @@ public class GrapheneVisualTestingConfiguration extends Configuration<Screenshoo
 
     private String firstRun = "false";
     
-    private String deploymentURLRoot = "http://locahost:8080/visual-testing";
-    
     private String testSuiteName = "pseudo-random";
+    
+    private String jcrContextRootURL = "http://localhost:8080/modeshape-rest/graphene-visual-testing/default";
+    
+    private String managerContextRootURL = "http://localhost:8080/";
+    
+    private String jcrUserName = "graphene-visual-testing";
+    
+    private String jcrPassword = "graphene-visual-testing";
     
     public GrapheneVisualTestingConfiguration() {
     }
@@ -34,6 +40,22 @@ public class GrapheneVisualTestingConfiguration extends Configuration<Screenshoo
     public String getTestSuiteName() {
         return getProperty("testSuiteName", testSuiteName);
     }
+    
+    public String getJcrContextRootURL() {
+        return getProperty("jcrContextRootURL", jcrContextRootURL);
+    }
+    
+    public String getManagerContextRootURL() {
+        return getProperty("managerContextRootURL", managerContextRootURL);
+    }
+    
+    public String getJcrUserName() {
+        return getProperty("jcrUserName", jcrUserName);
+    }
+    
+    public String getJcrPassword() {
+        return getProperty("jcrPassword", jcrPassword);
+    }
 
     public File getDiffs() {
         return new File(getProperty("diffs", diffs));
@@ -43,10 +65,6 @@ public class GrapheneVisualTestingConfiguration extends Configuration<Screenshoo
         return Boolean.parseBoolean(getProperty("firstRun", firstRun));
     }
     
-    public String getDeploymentURLRoot() {
-        return getProperty("deploymentURLRoot", deploymentURLRoot);
-    }
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
