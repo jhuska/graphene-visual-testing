@@ -1,10 +1,9 @@
 package org.jboss.arquillian.model.testSuite;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -38,13 +37,11 @@ public class TestSuiteRun {
     
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "TEST_SUITE_ID")
-//    @JsonManagedReference
     private TestSuite testSuite;
     
     @OneToMany(mappedBy = "testSuiteRun", fetch = FetchType.EAGER)
-    @JsonBackReference
-    private List<Comparison> comparisons;
-
+    private List<Sample> samples;
+    
     public long getTestSuiteRunID() {
         return testSuiteRunID;
     }
@@ -93,9 +90,23 @@ public class TestSuiteRun {
         this.testSuite = testSuite;
     }
 
+    public List<Sample> getSamples() {
+        return samples;
+    }
+
+    public void setSamples(List<Sample> samples) {
+        this.samples = samples;
+    }
+
     @Override
     public int hashCode() {
-        int hash = 3;
+        int hash = 7;
+        hash = 47 * hash + Objects.hashCode(this.timestamp);
+        hash = 47 * hash + Objects.hashCode(this.projectRevision);
+        hash = 47 * hash + this.numberOfFailedFunctionalTests;
+        hash = 47 * hash + this.numberOfFailedComparisons;
+        hash = 47 * hash + Objects.hashCode(this.testSuite);
+        hash = 47 * hash + Objects.hashCode(this.samples);
         return hash;
     }
 
@@ -123,7 +134,7 @@ public class TestSuiteRun {
         if (!Objects.equals(this.testSuite, other.testSuite)) {
             return false;
         }
-        if (!Objects.equals(this.comparisons, other.comparisons)) {
+        if (!Objects.equals(this.samples, other.samples)) {
             return false;
         }
         return true;
@@ -131,6 +142,6 @@ public class TestSuiteRun {
 
     @Override
     public String toString() {
-        return "TestSuiteRun{" + "testSuiteRunID=" + testSuiteRunID + ", timestamp=" + timestamp + ", projectRevision=" + projectRevision + ", numberOfFailedFunctionalTests=" + numberOfFailedFunctionalTests + ", numberOfFailedComparisons=" + numberOfFailedComparisons + ", testSuite=" + testSuite + ", comparisons=" + comparisons + '}';
+        return "TestSuiteRun{" + "testSuiteRunID=" + testSuiteRunID + ", timestamp=" + timestamp + ", projectRevision=" + projectRevision + ", numberOfFailedFunctionalTests=" + numberOfFailedFunctionalTests + ", numberOfFailedComparisons=" + numberOfFailedComparisons + ", testSuite=" + testSuite + ", samples=" + samples + '}';
     }
 }

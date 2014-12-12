@@ -6,6 +6,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.arquillian.extension.recorder.screenshooter.ScreenshooterConfiguration;
 import org.arquillian.graphene.visual.testing.api.DescriptorAndPatternsHandler;
@@ -52,9 +53,17 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
         RestUtils.executePost(postSuiteDescriptor, httpclient,
                 String.format("Suite descriptor for %s uploaded!", suiteName),
                 String.format("Error while uploading test suite descriptor for test suite: %s", suiteName));
-        
+
         //CREATE SUITE NAME IN DATABASE
-        
+        HttpPost postCreateSuiteName = new HttpPost(gVC.getManagerContextRootURL() + "graphene-visual-testing-webapp/rest/suites");
+        postCreateSuiteName.setHeader("Content-Type", "application/json");
+        StringEntity suiteNameEntity = new StringEntity(
+                "{\"name\":\"" + suiteName + "\",\"numberOfFunctionalTests\":\"" + getNumberOfTests()
+                + "\",\"numberOfVisualComparisons\":\"" + getNumberOfComparisons() + "\"}", ContentType.APPLICATION_JSON);
+        postCreateSuiteName.setEntity(suiteNameEntity);
+        RestUtils.executePost(postCreateSuiteName, httpclient,
+                String.format("Suite name in database for %s created!", suiteName),
+                String.format("Error while creating suite name in database for test suite: %s", suiteName));
 
         //UPLOADING PATTERNS
         return crawlAndUploadPatterns(patternsRootDir, patternsRootDir.getName(), httpclient);
@@ -90,7 +99,7 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
             JSONObject tests = testClasses.getJSONObject(testClass.toString()).getJSONObject("children");
             for (Object test : tests.keySet()) {
                 builder = appendWrappedStringWithSeparator(builder, test.toString());
-                File testDir = new File(PATTERNS_DEFAULT_DIR + File.separator + "screenshots" 
+                File testDir = new File(PATTERNS_DEFAULT_DIR + File.separator + "screenshots"
                         + File.separator + builder.toString());
                 testDir.mkdirs();
                 JSONObject screenshots = tests.getJSONObject(test.toString()).getJSONObject("children");
@@ -112,6 +121,35 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
             }
             builder = new StringBuilder();
         }
+    }
+
+    private int getNumberOfTests() {
+        int result = 0;
+        for (File testClassDir : screenshooterConf.get().getRootDir().listFiles()) {
+            result += testClassDir.listFiles().length;
+        }
+        return result;
+    }
+
+    private int getNumberOfComparisons() {
+        int result = 0;
+        for (File testClassDir : screenshooterConf.get().getRootDir().listFiles()) {
+            result += getNumberOfScreenshotsRecursively(testClassDir);
+        }
+        return result;
+    }
+
+    private int getNumberOfScreenshotsRecursively(File rootToStartFrom) {
+        int result = 0;
+        for (File i : rootToStartFrom.listFiles()) {
+            if (i.isDirectory()) {
+                result += getNumberOfScreenshotsRecursively(i);
+            } else {
+                result += rootToStartFrom.listFiles().length;
+                break;
+            }
+        }
+        return result;
     }
 
     private StringBuilder appendWrappedStringWithSeparator(StringBuilder builder, String toBeWrapped) {
@@ -142,14 +180,29 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
                 String suiteName = grapheneVisualTestingConf.get().getTestSuiteName();
                 String absolutePath = dirOrFile.getAbsolutePath();
                 String patternRelativePath = absolutePath.split(rootOfPatterns + File.separator)[1];
-                HttpPost postPattern = new HttpPost(grapheneVisualTestingConf.get().getJcrContextRootURL() + "/upload/"
+                String urlOfScreenshot = grapheneVisualTestingConf.get().getJcrContextRootURL() + "/upload/"
                         + suiteName + "/patterns/"
-                        + patternRelativePath);
+                        + patternRelativePath;
+                HttpPost postPattern = new HttpPost(urlOfScreenshot);
                 FileEntity screenshot = new FileEntity(dirOrFile);
                 postPattern.setEntity(screenshot);
-                result = RestUtils.executePost(postPattern, httpClient,
+                result = !RestUtils.executePost(postPattern, httpClient,
                         String.format("Pattern: %s uploaded to test suite: %s", dirOrFile.getName(), suiteName),
-                        String.format("ERROR: pattern %s was not uploaded to test suite %s", dirOrFile.getName(), suiteName));
+                        String.format("ERROR: pattern %s was not uploaded to test suite %s", dirOrFile.getName(), suiteName)).isEmpty();
+
+                //UPLOAD INFO ABOUT PATTERN TO DATABASE
+                HttpPost postCreatePattern = new HttpPost(grapheneVisualTestingConf.get().getManagerContextRootURL()
+                        + "graphene-visual-testing-webapp/rest/patterns");
+                postCreatePattern.setHeader("Content-Type", "application/json");
+                String urlOfScreenshotContent = urlOfScreenshot + "/jcr%3acontent/jcr%3adata";
+                StringEntity patternEntity
+                        = new StringEntity("{\"name\":\"" + patternRelativePath + "\",\"urlOfScreenshot\":\"" 
+                                + urlOfScreenshotContent + "\",\"testSuite\":{\"name\":\"" + suiteName + "\"}}"
+                                , ContentType.APPLICATION_JSON);
+                postCreatePattern.setEntity(patternEntity);
+                RestUtils.executePost(postCreatePattern, httpClient,
+                        String.format("Pattern in database for %s created!", suiteName),
+                        String.format("Error while creating pattern in database for test suite: %s", suiteName));
             }
             //if partial result is false, finish early with false status
             if (!result) {

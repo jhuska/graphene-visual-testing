@@ -1,6 +1,5 @@
 package org.jboss.arquillian.model.testSuite;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.util.List;
 import java.util.Objects;
 import javax.persistence.Column;
@@ -33,6 +32,17 @@ public class TestSuite {
     @OneToMany(mappedBy = "testSuite", fetch = FetchType.EAGER)
 //    @JsonBackReference
     private List<TestSuiteRun> runs;
+    
+    @OneToMany(mappedBy = "testSuite", fetch = FetchType.EAGER)
+    private List<Pattern> patterns;
+
+    public List<Pattern> getPatterns() {
+        return patterns;
+    }
+
+    public void setPatterns(List<Pattern> patterns) {
+        this.patterns = patterns;
+    }
     
     public String getName() {
         return name;

@@ -31,9 +31,6 @@ public class TestSuiteRESTService {
     @Inject
     private TestSuiteRunManager testSuiteRunManager;
     
-    @Inject
-    private CDIController cdiController;
-    
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<TestSuite> getAllTestSuites() {
@@ -45,7 +42,6 @@ public class TestSuiteRESTService {
     @Produces(MediaType.APPLICATION_JSON)
     public List<TestSuiteRun> getAllTestSuiteRuns(@PathParam("testSuiteID") long id) throws RepositoryException {
         List<TestSuiteRun> result = testSuiteRunManager.getAllTestSuiteRuns(id);
-        cdiController.storeSomePictures2();
         return result;
     }
     

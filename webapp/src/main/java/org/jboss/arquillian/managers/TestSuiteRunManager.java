@@ -6,7 +6,6 @@ import javax.persistence.EntityManager;
 import org.jboss.arquillian.model.testSuite.TestSuiteRun;
 import javax.inject.Inject;
 import javax.persistence.Query;
-import org.jboss.arquillian.model.testSuite.TestSuite;
 
 /**
  *
@@ -29,9 +28,9 @@ public class TestSuiteRunManager {
         return q.getResultList();
     }
     
-    public TestSuite createTestSuite(TestSuite testSuite) {
-        em.persist(testSuite);
-        return testSuite;
+    public TestSuiteRun createTestSuiteRun(TestSuiteRun testSuiteRun) {
+        em.persist(testSuiteRun);
+        return testSuiteRun;
     }
 
     public EntityManager getEm() {

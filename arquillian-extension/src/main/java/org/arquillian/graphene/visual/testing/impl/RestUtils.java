@@ -9,7 +9,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -32,7 +31,7 @@ import org.apache.http.util.EntityUtils;
 public class RestUtils {
 
     private static final Logger LOGGER = Logger.getLogger(RestUtils.class.getName());
-    
+
     public static String executeGet(HttpGet httpGet, CloseableHttpClient httpclient, String successLog, String errorLog) {
         CloseableHttpResponse response = null;
         BufferedReader bfr = null;
@@ -141,19 +140,33 @@ public class RestUtils {
         }
     }
 
-    public static boolean executePost(HttpPost post, CloseableHttpClient httpclient, String successLog, String errorLog) {
+    public static String executePost(HttpPost post, CloseableHttpClient httpclient, String successLog, String errorLog) {
         CloseableHttpResponse response = null;
+        BufferedReader bfr = null;
+        StringBuilder builder = new StringBuilder();
         try {
             response = httpclient.execute(post);
             if (!isOKOrCreated(response)) {
                 StatusLine status = response.getStatusLine();
                 LOGGER.info(String.format("%s %s %s", errorLog, status.getReasonPhrase(), status.getStatusCode()));
-                return false;
+                return builder.toString();
             }
-            HttpEntity responseEntity = response.getEntity();
-            EntityUtils.consume(responseEntity);
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                bfr = new BufferedReader(new InputStreamReader(entity.getContent()));
+
+                String line = bfr.readLine();
+                while (line != null) {
+                    builder.append(line);
+                    line = bfr.readLine();
+                }
+                EntityUtils.consume(entity);
+                if (successLog != null) {
+                    LOGGER.info(successLog);
+                }
+            }
             LOGGER.info(successLog);
-            return true;
+            return builder.toString();
         } catch (IOException ex) {
             LOGGER.severe(String.format(errorLog + " %s", ex.getMessage()));
         } finally {
@@ -165,7 +178,7 @@ public class RestUtils {
                 LOGGER.severe(ex.getMessage());
             }
         }
-        return false;
+        return builder.toString();
     }
 
     public static boolean isOKOrCreated(CloseableHttpResponse response) {
