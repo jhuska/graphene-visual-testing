@@ -1,5 +1,15 @@
 /* app css stylesheet */
 
-body {
-  
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+
+ul li {
+	margin-bottom: 5%;
 }
+
+div.centre {
+	width: 400px;
+  	display: block;
+  	margin-left: auto;
+  	margin-right: auto;
+}
+

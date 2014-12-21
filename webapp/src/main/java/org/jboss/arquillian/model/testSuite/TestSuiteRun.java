@@ -1,5 +1,8 @@
 package org.jboss.arquillian.model.testSuite;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -17,31 +20,37 @@ import javax.persistence.OneToMany;
 /**
  *
  * @author jhuska
-*/
+ */
 @Entity(name = "TEST_SUITE_RUN")
-public class TestSuiteRun {
+public class TestSuiteRun implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "TEST_SUITE_RUN_ID")
     private long testSuiteRunID;
-    
+
     @Column(name = "TEST_SUITE_RUN_TIMESTAMP")
     private Date timestamp;
-    
+
     private String projectRevision;
-    
+
     private int numberOfFailedFunctionalTests;
-    
+
     private int numberOfFailedComparisons;
-    
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "TEST_SUITE_ID")
+    @JsonBackReference(value = "test-suite-runs")
     private TestSuite testSuite;
-    
-    @OneToMany(mappedBy = "testSuiteRun", fetch = FetchType.EAGER)
+
+    @OneToMany(mappedBy = "testSuiteRun", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @JsonManagedReference(value = "test-suite-run-sample")
     private List<Sample> samples;
-    
+
+    @OneToMany(mappedBy = "testSuiteRun", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @JsonManagedReference(value = "test-suite-run-diff")
+    private List<Diff> diffs;
+
     public long getTestSuiteRunID() {
         return testSuiteRunID;
     }
@@ -98,15 +107,24 @@ public class TestSuiteRun {
         this.samples = samples;
     }
 
+    public List<Diff> getDiffs() {
+        return diffs;
+    }
+
+    public void setDiffs(List<Diff> diffs) {
+        this.diffs = diffs;
+    }
+
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 47 * hash + Objects.hashCode(this.timestamp);
-        hash = 47 * hash + Objects.hashCode(this.projectRevision);
-        hash = 47 * hash + this.numberOfFailedFunctionalTests;
-        hash = 47 * hash + this.numberOfFailedComparisons;
-        hash = 47 * hash + Objects.hashCode(this.testSuite);
-        hash = 47 * hash + Objects.hashCode(this.samples);
+        hash = 79 * hash + Objects.hashCode(this.timestamp);
+        hash = 79 * hash + Objects.hashCode(this.projectRevision);
+        hash = 79 * hash + this.numberOfFailedFunctionalTests;
+        hash = 79 * hash + this.numberOfFailedComparisons;
+        hash = 79 * hash + Objects.hashCode(this.testSuite);
+        hash = 79 * hash + Objects.hashCode(this.samples);
+        hash = 79 * hash + Objects.hashCode(this.diffs);
         return hash;
     }
 
@@ -137,11 +155,14 @@ public class TestSuiteRun {
         if (!Objects.equals(this.samples, other.samples)) {
             return false;
         }
+        if (!Objects.equals(this.diffs, other.diffs)) {
+            return false;
+        }
         return true;
     }
 
     @Override
     public String toString() {
-        return "TestSuiteRun{" + "testSuiteRunID=" + testSuiteRunID + ", timestamp=" + timestamp + ", projectRevision=" + projectRevision + ", numberOfFailedFunctionalTests=" + numberOfFailedFunctionalTests + ", numberOfFailedComparisons=" + numberOfFailedComparisons + ", testSuite=" + testSuite + ", samples=" + samples + '}';
+        return "TestSuiteRun: " + "TestSuite name: " + testSuite.getName() + ", TestSuite ID: " + testSuite.getTestSuiteID();
     }
 }

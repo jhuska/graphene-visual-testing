@@ -1,15 +1,23 @@
-<a href="#/jobs">back to jobs list</a>
-<div>
-
-  <ul>
-    <li ng-repeat="run in runs">
-      <a href="#/suites/{{run.testSuite.testSuiteID}}/runs/{{run.testSuiteRunID}}">
-        {{timestampToDate(run.timestamp)}}
-      </a>
-      <p>project revision: {{run.projectRevision}}</p>
-      <p>failed tests: {{run.numberOfFailedFunctionalTests}}</p>
-      <p>diffs: {{run.numberOfFailedComparisons}}</p>
-    </li>
-  </ul>
-
-</div>
+<a href="#/suites">Back to test suites list</a>
+<table class="table table-striped table-condensed">
+        <thead>
+        <tr>
+            <th style="min-width: 80px;">Run Timestamp</th>
+            <th style="min-width: 80px;">Project revision</th>
+            <th style="min-width: 80px;">Failed functional tests</th>
+            <th style="min-width: 80px;">Number of diffs</th>
+            <th style="width:20px;"> </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="run in particularSuite.runs">
+            <td><a href="#/suites/{{particularSuite.testSuiteID}}/runs/{{run.testSuiteRunID}}">
+                {{timestampToDate(run.timestamp)}}</a>
+            </td>
+            <td>{{run.projectRevision}}</td>
+            <td>{{run.numberOfFailedFunctionalTests}}</td>
+            <td>{{run.numberOfFailedComparisons}}</td>
+            <td><a ng-click="deleteSuiteRun(run.testSuiteRunID)" class="btn btn-small btn-danger">delete</a></td>
+        </tr>
+        </tbody>
+</table>

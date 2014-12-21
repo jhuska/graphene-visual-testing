@@ -7,7 +7,8 @@ var PARTIALS = 'app/partials';
 var visualTestingApp = angular.module('visualTestingApp', [
   'ngRoute',
   'visualTestingControllers',
-  'visualTestingServices'
+  'visualTestingServices',
+  'ui.bootstrap'
 ]);
 
 visualTestingApp.config(['$routeProvider',
@@ -19,7 +20,7 @@ visualTestingApp.config(['$routeProvider',
       }).
       when('/suites/:testSuiteID', {
         templateUrl: PARTIALS + '/test-suite-runs-list.html',
-        controller: 'SuiteRunsCtrl'
+        controller: 'ParticularSuiteCtrl'
       }).
       when('/suites/:testSuiteID/runs/:runId', {
         templateUrl: PARTIALS + '/particular-run.html',

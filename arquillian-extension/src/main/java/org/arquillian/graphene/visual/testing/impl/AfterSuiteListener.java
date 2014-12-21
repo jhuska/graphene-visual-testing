@@ -9,10 +9,10 @@ import org.jboss.arquillian.core.api.annotation.Inject;
 import org.jboss.arquillian.core.api.annotation.Observes;
 import org.jboss.arquillian.core.spi.ServiceLoader;
 import org.jboss.arquillian.test.spi.event.suite.AfterSuite;
-import org.jboss.rusheye.arquillian.configuration.RusheyeConfiguration;
 import org.jboss.rusheye.arquillian.event.StartParsingEvent;
 import org.jboss.rusheye.arquillian.event.StartCrawlinglEvent;
 import java.util.logging.Logger;
+import org.jboss.rusheye.arquillian.event.FailedTestsCollection;
 
 public class AfterSuiteListener {
 
@@ -31,6 +31,9 @@ public class AfterSuiteListener {
     @Inject
     private Instance<ServiceLoader> serviceLoader;
     
+    @Inject
+    private Instance<FailedTestsCollection> failedTestsCollection;
+    
     private static final Logger LOGGER = Logger.getLogger(AfterSuiteListener.class.getName());
 
     public void listenToAfterSuite(@Observes AfterSuite event) {
@@ -40,7 +43,7 @@ public class AfterSuiteListener {
         } else {
             String descriptorAndPatternsDir
                     = serviceLoader.get().onlyOne(DescriptorAndPatternsHandler.class).retrieveDescriptorAndPatterns();
-            startParsingEvent.fire(new StartParsingEvent(descriptorAndPatternsDir, samplesPath));
+            startParsingEvent.fire(new StartParsingEvent(descriptorAndPatternsDir, samplesPath, failedTestsCollection.get()));
         }
     }
 }

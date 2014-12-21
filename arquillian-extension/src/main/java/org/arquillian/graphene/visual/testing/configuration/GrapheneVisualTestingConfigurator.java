@@ -27,6 +27,7 @@ import org.jboss.arquillian.core.api.InstanceProducer;
 import org.jboss.arquillian.core.api.annotation.ApplicationScoped;
 import org.jboss.arquillian.core.api.annotation.Inject;
 import org.jboss.arquillian.core.api.annotation.Observes;
+import org.jboss.rusheye.arquillian.event.FailedTestsCollection;
 
 /**
  * @author <a href="mailto:jhuska@redhat.com">Juraj Huska</a>
@@ -41,6 +42,10 @@ public class GrapheneVisualTestingConfigurator {
     @Inject
     @ApplicationScoped
     private InstanceProducer<GrapheneVisualTestingConfiguration> configuration;
+    
+    @Inject
+    @ApplicationScoped
+    private InstanceProducer<FailedTestsCollection> failedTestsCollection;
 
     @Inject
     private Event<GrapheneVisualTestingExtensionConfigured> extensionConfiguredEvent;
@@ -57,6 +62,7 @@ public class GrapheneVisualTestingConfigurator {
         }
 
         this.configuration.set(conf);
+        this.failedTestsCollection.set(new FailedTestsCollection());
 
         if (logger.isLoggable(Level.INFO)) {
             System.out.println("Configuration of Arquillian Graphene Visual Testing:");

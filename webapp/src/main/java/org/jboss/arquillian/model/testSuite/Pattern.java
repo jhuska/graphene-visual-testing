@@ -1,6 +1,10 @@
 package org.jboss.arquillian.model.testSuite;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import java.util.List;
 import java.util.Objects;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -9,6 +13,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
 /**
  *
@@ -16,22 +21,26 @@ import javax.persistence.ManyToOne;
  */
 @Entity(name = "PATTERN")
 public class Pattern {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "PATTERN_ID")
     private Long patternID;
-    
-    @Column(name = "PATTERN_NAME", unique=true)
+
+    @Column(name = "PATTERN_NAME", length = Diff.STRING_COLUMN_LENGTH)
     private String name;
-    
-    @Column(name = "URL_SCREENSHOT", unique=true)
+
+    @Column(name = "URL_SCREENSHOT", unique = true, length = Diff.STRING_COLUMN_LENGTH)
     private String urlOfScreenshot;
-    
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "TEST_SUITE_ID")
-//    @JsonManagedReference
+    @JsonBackReference(value = "test-suite-patterns")
     private TestSuite testSuite;
+
+    @OneToMany(mappedBy = "pattern", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @JsonManagedReference(value = "pattern-diff")
+    private List<Diff> diffs;
 
     public Long getPatternID() {
         return patternID;
@@ -65,12 +74,21 @@ public class Pattern {
         this.testSuite = testSuite;
     }
 
+    public List<Diff> getDiffs() {
+        return diffs;
+    }
+
+    public void setDiffs(List<Diff> diffs) {
+        this.diffs = diffs;
+    }
+
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 17 * hash + Objects.hashCode(this.name);
-        hash = 17 * hash + Objects.hashCode(this.urlOfScreenshot);
-        hash = 17 * hash + Objects.hashCode(this.testSuite);
+        hash = 23 * hash + Objects.hashCode(this.name);
+        hash = 23 * hash + Objects.hashCode(this.urlOfScreenshot);
+        hash = 23 * hash + Objects.hashCode(this.testSuite);
+        hash = 23 * hash + Objects.hashCode(this.diffs);
         return hash;
     }
 
@@ -92,12 +110,9 @@ public class Pattern {
         if (!Objects.equals(this.testSuite, other.testSuite)) {
             return false;
         }
+        if (!Objects.equals(this.diffs, other.diffs)) {
+            return false;
+        }
         return true;
     }
-
-    @Override
-    public String toString() {
-        return "Pattern{" + "patternID=" + patternID + ", name=" + name + ", urlOfScreenshot=" + urlOfScreenshot + ", testSuite=" + testSuite + '}';
-    }
-    
 }

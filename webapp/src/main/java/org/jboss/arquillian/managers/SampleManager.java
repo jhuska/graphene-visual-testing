@@ -15,8 +15,16 @@ public class SampleManager {
     @Inject
     private EntityManager em;
     
+    public Sample findById(long id) {
+        return em.find(Sample.class, id);
+    }
+    
     public Sample createTestSuiteRun(Sample sample) {
         em.persist(sample);
         return sample;
+    }
+    
+    public void deleteSample(Sample sample) {
+        em.remove(em.contains(sample) ? sample : em.merge(sample));
     }
 }

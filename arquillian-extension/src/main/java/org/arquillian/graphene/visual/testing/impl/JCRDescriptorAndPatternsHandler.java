@@ -194,7 +194,7 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
                 HttpPost postCreatePattern = new HttpPost(grapheneVisualTestingConf.get().getManagerContextRootURL()
                         + "graphene-visual-testing-webapp/rest/patterns");
                 postCreatePattern.setHeader("Content-Type", "application/json");
-                String urlOfScreenshotContent = urlOfScreenshot + "/jcr%3acontent/jcr%3adata";
+                String urlOfScreenshotContent = urlOfScreenshot.replace("/upload/", "/binary/") + "/jcr%3acontent/jcr%3adata";
                 StringEntity patternEntity
                         = new StringEntity("{\"name\":\"" + patternRelativePath + "\",\"urlOfScreenshot\":\"" 
                                 + urlOfScreenshotContent + "\",\"testSuite\":{\"name\":\"" + suiteName + "\"}}"

@@ -1,21 +1,21 @@
 package org.jboss.arquillian.rest;
 
 import java.util.List;
+import java.util.logging.Logger;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.jcr.RepositoryException;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import org.jboss.arquillian.jcr.CDIController;
+import javax.ws.rs.core.Response;
+import org.jboss.arquillian.bean.JCRBean;
 import org.jboss.arquillian.managers.TestSuiteManager;
-import org.jboss.arquillian.managers.TestSuiteRunManager;
 import org.jboss.arquillian.model.testSuite.TestSuite;
-import org.jboss.arquillian.model.testSuite.TestSuiteRun;
 
 /**
  *
@@ -29,7 +29,9 @@ public class TestSuiteRESTService {
     private TestSuiteManager testSuiteManager;
     
     @Inject
-    private TestSuiteRunManager testSuiteRunManager;
+    private JCRBean jcrBean;
+    
+    private static final Logger LOGGER = Logger.getLogger(TestSuiteRESTService.class.getName());
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -37,12 +39,14 @@ public class TestSuiteRESTService {
         return testSuiteManager.getAllTestSuites();
     }
     
-    @GET
+    @DELETE
     @Path("/{testSuiteID:[0-9][0-9]*}")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<TestSuiteRun> getAllTestSuiteRuns(@PathParam("testSuiteID") long id) throws RepositoryException {
-        List<TestSuiteRun> result = testSuiteRunManager.getAllTestSuiteRuns(id);
-        return result;
+    public Response deleteTestSuite(@PathParam("testSuiteID") long id) {
+        TestSuite testSuiteToRemove = testSuiteManager.findById(id);
+        jcrBean.removeTestSuite(testSuiteToRemove.getName());
+        testSuiteManager.deleteTestSuite(testSuiteManager.findById(id));
+        return Response.ok().build();
     }
     
     @POST
@@ -56,5 +60,12 @@ public class TestSuiteRESTService {
             result = testSuite;
         }
         return result;
+    }
+    
+    @GET
+    @Path("/{testSuiteID:[0-9][0-9]*}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public TestSuite getTestSuite(@PathParam("testSuiteID") long id) {
+        return testSuiteManager.findById(id);
     }
 }

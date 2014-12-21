@@ -44,6 +44,10 @@ public class TestSuiteManager {
         }
         return result;
     }
+    
+    public void deleteTestSuite(TestSuite testSuite) {
+        em.remove(em.contains(testSuite) ? testSuite : em.merge(testSuite));
+    }
 
     public EntityManager getEm() {
         return em;

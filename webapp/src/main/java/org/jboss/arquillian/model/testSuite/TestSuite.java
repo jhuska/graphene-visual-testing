@@ -1,7 +1,10 @@
 package org.jboss.arquillian.model.testSuite;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -15,25 +18,26 @@ import javax.persistence.OneToMany;
  * @author jhuska
  */
 @Entity(name = "TEST_SUITE")
-public class TestSuite {
+public class TestSuite implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "TEST_SUITE_ID")
     private Long testSuiteID;
 
-    @Column(name = "TEST_SUITE_NAME", unique=true)
+    @Column(name = "TEST_SUITE_NAME", unique = true)
     private String name;
 
     private int numberOfFunctionalTests;
 
     private int numberOfVisualComparisons;
-    
-    @OneToMany(mappedBy = "testSuite", fetch = FetchType.EAGER)
-//    @JsonBackReference
+
+    @OneToMany(mappedBy = "testSuite", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @JsonManagedReference(value = "test-suite-runs")
     private List<TestSuiteRun> runs;
-    
-    @OneToMany(mappedBy = "testSuite", fetch = FetchType.EAGER)
+
+    @OneToMany(mappedBy = "testSuite", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @JsonManagedReference(value = "test-suite-patterns")
     private List<Pattern> patterns;
 
     public List<Pattern> getPatterns() {
@@ -43,7 +47,7 @@ public class TestSuite {
     public void setPatterns(List<Pattern> patterns) {
         this.patterns = patterns;
     }
-    
+
     public String getName() {
         return name;
     }
@@ -114,8 +118,4 @@ public class TestSuite {
         return true;
     }
 
-    @Override
-    public String toString() {
-        return "TestSuite{" + "testSuiteID=" + testSuiteID + ", name=" + name + ", numberOfFunctionalTests=" + numberOfFunctionalTests + ", numberOfVisualComparisons=" + numberOfVisualComparisons + '}';
-    }
 }
