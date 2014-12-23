@@ -4,7 +4,8 @@ import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Resource;
-import javax.enterprise.context.RequestScoped;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -12,18 +13,20 @@ import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 
 @Named("jcrBean")
-@RequestScoped
+@ApplicationScoped
 public class JCRBean implements Serializable {
 
     private static final Logger LOGGER = Logger.getLogger(JCRBean.class.getSimpleName());
-
+    
     @Resource(mappedName = "java:/jcr/graphene-visual-testing")
     private javax.jcr.Repository repository;
     
+    @Inject
+    private BasicAuthSessionStore sessionStore;
+    
     public Session getSession() throws RepositoryException {
-        //TODO retrieve credentials from app authentisation system
-        char[] password = {'g', 'r', 'a', 'p', 'h', 'e', 'n', 'e', '-', 'v', 'i', 's', 'u', 'a', 'l', '-', 't', 'e', 's', 't', 'i', 'n', 'g'};
-        return repository.login(new SimpleCredentials("graphene-visual-testing", password));
+        return repository.login(new SimpleCredentials(sessionStore.getLogin(), 
+                sessionStore.getPassword().toCharArray()));
     }
 
     public void removeTestSuite(String testSuiteName) {
@@ -77,5 +80,4 @@ public class JCRBean implements Serializable {
             Logger.getLogger(JCRBean.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
 }
