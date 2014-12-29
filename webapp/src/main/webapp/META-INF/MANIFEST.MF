@@ -3,4 +3,4 @@ Archiver-Version: Plexus Archiver
 Created-By: Apache Maven
 Built-By: jhuska
 Build-Jdk: 1.7.0_55
-Dependencies: org.jboss.resteasy.resteasy-jaxb-provider export services, javax.jcr, org.modeshape.jcr.api export services, org.modeshape export services
+Dependencies: org.jboss.resteasy.resteasy-jaxb-provider export services, javax.jcr export, org.slf4j, org.modeshape.jcr.api export services, org.modeshape export services

@@ -14,6 +14,8 @@ import org.arquillian.graphene.visual.testing.configuration.GrapheneVisualTestin
 import org.jboss.arquillian.core.api.Instance;
 import org.jboss.arquillian.core.api.annotation.Inject;
 import org.jboss.rusheye.arquillian.configuration.RusheyeConfiguration;
+import org.jboss.rusheye.arquillian.event.FailedTestsCollection;
+import org.jboss.rusheye.arquillian.event.VisuallyUnstableTestsCollection;
 import org.json.JSONObject;
 
 /**
@@ -34,6 +36,12 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
 
     @Inject
     private Instance<GrapheneVisualTestingConfiguration> grapheneVisualTestingConf;
+
+    @Inject
+    private Instance<FailedTestsCollection> failedTestCollection;
+
+    @Inject
+    private Instance<VisuallyUnstableTestsCollection> visuallyUnstableTestCollection;
 
     @Override
     public boolean saveDescriptorAndPatterns() {
@@ -180,6 +188,13 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
                 String suiteName = grapheneVisualTestingConf.get().getTestSuiteName();
                 String absolutePath = dirOrFile.getAbsolutePath();
                 String patternRelativePath = absolutePath.split(rootOfPatterns + File.separator)[1];
+                String patternName = patternRelativePath.substring(0, patternRelativePath.lastIndexOf(File.separator))
+                        .replaceAll(File.separator, ".");
+                if (failedTestCollection.get().getTests().contains(patternName)
+                        || visuallyUnstableTestCollection.get().getTests().contains(patternName)) {
+                    //FAILED OF UNSTABLE TEST, skip uploading of pattern
+                    continue;
+                }
                 String urlOfScreenshot = grapheneVisualTestingConf.get().getJcrContextRootURL() + "/upload/"
                         + suiteName + "/patterns/"
                         + patternRelativePath;
@@ -196,9 +211,8 @@ public class JCRDescriptorAndPatternsHandler implements DescriptorAndPatternsHan
                 postCreatePattern.setHeader("Content-Type", "application/json");
                 String urlOfScreenshotContent = urlOfScreenshot.replace("/upload/", "/binary/") + "/jcr%3acontent/jcr%3adata";
                 StringEntity patternEntity
-                        = new StringEntity("{\"name\":\"" + patternRelativePath + "\",\"urlOfScreenshot\":\"" 
-                                + urlOfScreenshotContent + "\",\"testSuite\":{\"name\":\"" + suiteName + "\"}}"
-                                , ContentType.APPLICATION_JSON);
+                        = new StringEntity("{\"name\":\"" + patternRelativePath + "\",\"urlOfScreenshot\":\""
+                                + urlOfScreenshotContent + "\",\"testSuite\":{\"name\":\"" + suiteName + "\"}}", ContentType.APPLICATION_JSON);
                 postCreatePattern.setEntity(patternEntity);
                 RestUtils.executePost(postCreatePattern, httpClient,
                         String.format("Pattern in database for %s created!", suiteName),
