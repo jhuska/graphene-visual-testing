@@ -18,6 +18,7 @@ package org.arquillian.graphene.visual.testing.configuration;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.arquillian.graphene.visual.testing.impl.DiffsUtils;
 
 import org.arquillian.recorder.reporter.event.ReportingExtensionConfigured;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
@@ -51,6 +52,10 @@ public class GrapheneVisualTestingConfigurator {
     @Inject
     @ApplicationScoped
     private InstanceProducer<VisuallyUnstableTestsCollection> visuallyUnstableTestsCollection;
+    
+    @Inject
+    @ApplicationScoped
+    private InstanceProducer<DiffsUtils> diffsUtils;
 
     @Inject
     private Event<GrapheneVisualTestingExtensionConfigured> extensionConfiguredEvent;
@@ -69,6 +74,7 @@ public class GrapheneVisualTestingConfigurator {
         this.configuration.set(conf);
         this.failedTestsCollection.set(new FailedTestsCollection());
         this.visuallyUnstableTestsCollection.set(new VisuallyUnstableTestsCollection());
+        this.diffsUtils.set(new DiffsUtils(false));
 
         if (logger.isLoggable(Level.INFO)) {
             System.out.println("Configuration of Arquillian Graphene Visual Testing:");

@@ -26,6 +26,8 @@ public class GrapheneVisualTestingConfiguration extends Configuration<Screenshoo
     
     private String jcrPassword = "graphene-visual-testing";
     
+    private String failBuild = "false";
+    
     public GrapheneVisualTestingConfiguration() {
     }
 
@@ -63,6 +65,10 @@ public class GrapheneVisualTestingConfiguration extends Configuration<Screenshoo
 
     public boolean isFirstRun() {
         return Boolean.parseBoolean(getProperty("firstRun", firstRun));
+    }
+    
+    public boolean isFailBuild() {
+        return Boolean.parseBoolean(getProperty("failBuild", failBuild));
     }
     
     @Override

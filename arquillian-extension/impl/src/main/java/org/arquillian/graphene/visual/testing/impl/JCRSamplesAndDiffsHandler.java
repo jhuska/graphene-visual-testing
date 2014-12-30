@@ -26,6 +26,8 @@ import org.xml.sax.SAXException;
 import java.util.logging.Level;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.http.entity.StringEntity;
+import org.jboss.arquillian.core.api.InstanceProducer;
+import org.jboss.arquillian.core.api.annotation.ApplicationScoped;
 import org.jboss.rusheye.suite.ResultConclusion;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -47,6 +49,9 @@ public class JCRSamplesAndDiffsHandler implements SamplesAndDiffsHandler {
 
     @Inject
     private Instance<ScreenshooterConfiguration> screenshooterConf;
+    
+    @Inject
+    private Instance<DiffsUtils> diffsUtils;
 
     private final Map<String, Long> sampleAndItsIDs = new HashMap<>();
 
@@ -88,6 +93,7 @@ public class JCRSamplesAndDiffsHandler implements SamplesAndDiffsHandler {
         //UPLOADING DIFFS AND SAMPLES IF ANY
         Map<String, String> patternsNamesAndCorrespondingDiffs = getDiffNames();
         if (!patternsNamesAndCorrespondingDiffs.isEmpty()) {
+            diffsUtils.get().setDiffCreated(true);
             uploadSamples(patternsNamesAndCorrespondingDiffs, timestampWithoutWhiteSpaces, testSuiteRunID);
             uploadDiffs(patternsNamesAndCorrespondingDiffs, timestampWithoutWhiteSpaces, testSuiteRunID);
         }

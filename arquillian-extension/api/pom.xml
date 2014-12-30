@@ -10,6 +10,26 @@
     </parent>	 
 
     <artifactId>graphene-visual-testing-arq-ext-api</artifactId>
+    <packaging>jar</packaging>
+    
+    <properties>
+        <rusheye.version>1.0.0-SNAPSHOT</rusheye.version>
+    </properties>
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.jboss.rusheye</groupId>
+            <artifactId>rusheye-impl</artifactId>
+            <version>${rusheye.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
     <build>
         <pluginManagement>
