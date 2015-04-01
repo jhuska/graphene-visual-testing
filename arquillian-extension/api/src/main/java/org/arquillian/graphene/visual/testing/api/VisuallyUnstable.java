@@ -6,7 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- *
+ *Annotation used over tests methods or test classes which are not stable enough for visual testing.
+ * 
+ * Such test classes or test methods will be excluded from visual testing.
  * @author jhuska
  */
 @Retention(RetentionPolicy.RUNTIME)

@@ -26,8 +26,6 @@ import org.xml.sax.SAXException;
 import java.util.logging.Level;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.http.entity.StringEntity;
-import org.jboss.arquillian.core.api.InstanceProducer;
-import org.jboss.arquillian.core.api.annotation.ApplicationScoped;
 import org.jboss.rusheye.suite.ResultConclusion;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
